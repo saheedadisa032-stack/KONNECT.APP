@@ -1,0 +1,122 @@
+@media (max-width: 768px) {
+  .sidebar-section {
+    position: fixed !important;
+    bottom: 16px !important;
+    top: auto !important;
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%) !important;
+    width: 92% !important;
+    max-width: 400px !important;
+    height: 68px !important;
+    background: rgba(15, 15, 15, 0.72);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    border-radius: 30px !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    padding: 6px !important;
+    display: flex !important;
+    z-index: 10000 !important;
+    overflow: hidden !important;
+  }
+
+  .sidebar-section-1 {
+    display: flex !important;
+    width: 100% !important;
+    height: 100% !important;
+    justify-content: space-around !important;
+    align-items: center !important;
+  }
+
+  .sidebar-section-2 { display: none !important; }
+
+  /* icon btn - keep your placement */
+  .icon-sidebar-btn {
+    position: relative !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 3px !important;
+    flex: 1 !important;
+    height: 54px !important;
+    color: rgba(255, 255, 255, 0.45) !important; /* gray inactive */
+    text-decoration: none !important;
+    border-radius: 24px !important;
+    z-index: 1 !important;
+    -webkit-tap-highlight-color: transparent !important;
+    transition: all 0.25s ease !important;
+    background: transparent !important;
+    border: 1px solid transparent !important;
+  }
+
+  /* liquid glass active - NOT white */
+  .icon-sidebar-btn::before {
+    content: '' !important;
+    position: absolute !important;
+    inset: 0 !important;
+    background: rgba(255, 255, 255, 0.12) !important; /* transparent glass */
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    border-radius: 24px !important;
+    transform: scale(0.7) !important;
+    opacity: 0 !important;
+    z-index: -1 !important;
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+  }
+
+  .icon-sidebar-btn.active {
+    color: rgba(255, 255, 255, 0.95) !important; /* brighter gray, not black */
+  }
+  .icon-sidebar-btn.active::before {
+    transform: scale(1) !important;
+    opacity: 1 !important;
+  }
+
+  /* NO fill on active - keep outline gray style */
+  .icon-sidebar-btn .home-icon {
+    width: 22px !important;
+    height: 22px !important;
+    stroke-width: 2.2 !important;
+    fill: none !important; /* never fill */
+    color: currentColor !important;
+    flex-shrink: 0 !important;
+    margin: 0 !important;
+    transition: all 0.2s ease !important;
+  }
+  .icon-sidebar-btn.active .home-icon {
+    fill: none !important; /* stay outline */
+    stroke-width: 2.4 !important;
+    color: rgba(255, 255, 255, 0.95) !important;
+  }
+
+  /* text placement like your first code */
+  .icon-sidebar-btn .nav-label {
+    display: block !important;
+    font-size: 10px !important;
+    font-weight: 500 !important;
+    line-height: 1 !important;
+    letter-spacing: 0.2px !important;
+    margin: 2px 0 0 0 !important;
+    color: currentColor !important;
+    transition: all 0.2s ease !important;
+  }
+  .icon-sidebar-btn.active .nav-label {
+    font-weight: 600 !important;
+    color: rgba(255, 255, 255, 0.95) !important;
+  }
+
+  /* tap wiggle only */
+  .icon-sidebar-btn.wiggle {
+    animation: wa-wiggle 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .tooltip { display: none !important; }
+
+  @keyframes wa-wiggle {
+    0%, 100% { transform: scale(1); }
+    30% { transform: scale(0.92); }
+    60% { transform: scale(1.06); }
+  }
+}

@@ -1,0 +1,28 @@
+/*  GLOBAL VARIABLES */
+:root {
+  --bg-app: #000000;
+  --bg-header: #0A0A0A;
+  --card-bg: #1E293B;
+  --border:#888;
+  --side-border: #121212;
+  --text-main: white;
+  --text-gray: #94A3B8;
+  --font-main: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/*  RESET EVERYTHING */
+* { 
+  margin: 0; 
+  padding: 0; 
+  box-sizing: border-box;
+  font-family: var(--font-main); 
+}
+
+body{
+    background-color:var(--bg-app);
+  padding-top: 80px;
+  padding-left: 80px;
+  padding-bottom: 400px;
+  overflow-x: hidden;
+}
+

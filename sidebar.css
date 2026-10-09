@@ -1,0 +1,97 @@
+/* sidebar section */
+.sidebar-section{
+  width: 70px;
+    background-color: var(--side-border);
+    position: fixed;
+    top: 0px;
+    left: 0;
+    bottom: 0;
+display: flex;
+flex-direction: column;
+justify-content: space-between;
+z-index: 10000;
+
+}
+
+
+/* first section */
+.sidebar-section-1{
+   width: 70px;
+   height: 50px;
+   flex: 1;
+   margin-top: 3px;
+  
+}
+
+
+/* all sidebar command section */
+.icon-sidebar-btn{
+    position: relative;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-bottom: 30px;
+    margin-top: 10px;
+    z-index: 10000;
+}
+
+.icon-sidebar-btn .home-icon{
+    stroke-width: 2;
+color: rgb(143, 137, 137);
+    width: 23px;
+    height: 23px;
+    margin:20px 0px 10px 24px;
+
+}
+
+
+.icon-sidebar-btn:hover{
+    color:rgb(143, 137, 137,0.3);
+}
+
+.icon-sidebar-btn:hover .home-icon{
+    color:rgb(143, 137, 137,0.3);
+    transform: scale(1.1);
+}
+.tooltip{
+    position: absolute;
+    left: 60px;
+    top: 30px;
+    color: var(--text-main);
+    font-size: 13px;
+    white-space: nowrap;
+    font-weight: 500;
+    padding: 3px 8px 3px 8px;
+    background-color: #1a1a1a;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.2s ease;
+  transform: translateX(-8px);
+  border-radius: 4px;
+  z-index: 100000;
+
+}
+
+.icon-sidebar-btn:hover .tooltip{
+    opacity: 1;
+    transform: translateX(0);
+    z-index: 1000000;
+}
+
+
+/* second sidebar  section */
+
+.sidebar-section-2{
+    border-top:2px solid #000 ;
+    margin-bottom: 20px;
+    width: 53px;
+    height: 200px;
+    margin-left: 2px;
+}
+
+
+.active-none{
+    display: none;
+}

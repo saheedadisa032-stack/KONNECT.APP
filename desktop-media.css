@@ -1,0 +1,21 @@
+/* SHOW ONLY FOR DESKTOP - 1024px up */
+@media (min-width: 1024px){
+  .chat-messages::-webkit-scrollbar{
+    display:block;
+    width:5px;
+  }
+  .chat-messages::-webkit-scrollbar-track{
+    background:transparent;
+  }
+  .chat-messages::-webkit-scrollbar-thumb{
+    background:rgba(255,255,255,0.20);
+    border-radius:10px;
+  }
+  .chat-messages::-webkit-scrollbar-thumb:hover{
+    background:rgba(255,255,255,0.35);
+  }
+  .chat-messages{
+    scrollbar-width:thin;
+    scrollbar-color:rgba(255,255,255,0.20) transparent;
+  }
+}
