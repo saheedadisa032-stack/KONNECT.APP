@@ -342,6 +342,9 @@
     <div class="calls">
       <i data-lucide="phone" class="phone-call"></i>
       <i data-lucide="video" class="video-call"></i>
+      <button class="header-cancel-btn" id="headerCancelBtn">
+    <i data-lucide="x"></i>
+  </button>
     </div>
   </div>
 
@@ -357,11 +360,13 @@
       <div class="bubble receiver-bubble">
         <p>Bro how far, you don see my code?</p>
         <span class="msg-meta"><span class="msg-time">9:41 AM</span></span>
+            <span class="msg-reaction-badge" id="reaction-msg1"></span>
       </div>
     </div>
 
     <!-- SENDER - CLOCK (not sent) -->
     <div class="msg-row sender">
+
         <div class="swipe-reply-icon">
     <i data-lucide="reply"></i>
   </div>
@@ -371,6 +376,7 @@
           <span class="msg-time">9:42 AM</span>
           <i data-lucide="clock-3" class="tick-icon clock"></i>
         </span>
+            <span class="msg-reaction-badge" id="reaction-msg1"></span>
       </div>
     </div>
 
@@ -384,6 +390,7 @@
         <span class="msg-meta">
           <span class="msg-time">9:42 AM</span>
           <i data-lucide="check" class="tick-icon single"></i>
+              <span class="msg-reaction-badge" id="reaction-msg1"></span>
         </span>
       </div>
     </div>
@@ -465,6 +472,27 @@
     </div>
 
   </div>
+  <!-- BLUR OVERLAY - ADD THIS -->
+<div class="message-focus-overlay" id="messageFocusOverlay"></div>
+
+<!-- POPPED MESSAGE CLONE WILL GO HERE VIA JS - ADD THIS EMPTY DIV -->
+<div class="popped-message-container" id="poppedMessageContainer">
+  <!-- JS go clone the message inside here when you hold -->
+  <div class="message-action-pill" id="messageActionPill">
+    <button data-action="delete"><i data-lucide="trash-2"></i><span>Delete</span></button>
+    <button data-action="react"><i data-lucide="smile-plus"></i><span>React</span></button>
+    <button data-action="reply"><i data-lucide="reply"></i><span>Reply</span></button>
+  </div>
+  <div class="emoji-react-bar" id="emojiReactBar">
+    <button data-emoji="❤️">❤️</button>
+    <button data-emoji="😂">😂</button>
+    <button data-emoji="😮">😮</button>
+    <button data-emoji="😢">😢</button>
+    <button data-emoji="🙏">🙏</button>
+    <button class="emoji-plus-btn" id="emojiPlusBtn"><i data-lucide="plus"></i></button>
+  </div>
+  <div class="emoji-hint" id="emojiHint">Press Ctrl + Cmd + Space on Mac / Win + . on Windows</div>
+</div>
  <button class="scroll-down-btn" id="scrollDownBtn">
     <i data-lucide="chevron-down"></i>
     <span class="scroll-new-count" id="scrollNewCount">0</span>
@@ -494,6 +522,18 @@
       <i data-lucide="arrow-up" class="icon-send"></i>
     </button>
   </div>
+
+  <!-- DELETE OPTIONS BAR - ADD THIS AFTER INPUT BAR -->
+<div class="delete-action-bar" id="deleteActionBar">
+  <button class="delete-opt" data-delete="me">
+    <i data-lucide="trash"></i>
+    <span>Delete for me</span>
+  </button>
+  <button class="delete-opt" data-delete="everyone">
+    <i data-lucide="trash-2"></i>
+    <span>Delete for everyone</span>
+  </button>
+</div>
 </div>
 </main>
 
@@ -517,6 +557,7 @@
 <script src="sidebar.js"></script>
 <script src="header.js"></script>
 <script src="swipetoreply.js"></script>
+<script src="reaction.js"></script>
 </html>
 
 

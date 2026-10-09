@@ -650,7 +650,10 @@
   opacity: 0;
   pointer-events: none;
   transform: translateY(10px);
-  transition: all 0.25s ease;
+  
+  transition: bottom 0.25s cubic-bezier(0.175,0.885,0.32,1.275), 
+              opacity 0.25s ease, 
+              transform 0.25s ease !important;
 }
 .scroll-down-btn.show{
   opacity: 1;
@@ -725,6 +728,284 @@
 .reply-preview-close{ background:none; border:none; color:#fff; display:flex; cursor:pointer; }
 .reply-preview-close i{ width:18px; height:18px; }
 
+
+
+/* ===== iPHONE HOLD MESSAGE - COMPLETE CSS ===== */
+
+/* 1. BLUR OVERLAY - only for messages area, not header */
+.message-focus-overlay{
+  position: absolute;
+  top: 70px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  z-index: 45;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+.message-focus-overlay.active{
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* 2. POPPED MESSAGE CONTAINER */
+.popped-message-container{
+  position: absolute;
+  top: 45%;
+  left: 50%;
+  transform: translate(-50%,-50%) scale(0.85);
+  z-index: 60;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  opacity: 0;
+  transition: all 0.35s cubic-bezier(0.175,0.885,0.32,1.275);
+  max-width: 78%;
+  min-width: 220px;
+  width: fit-content;
+  pointer-events: none;
+}
+.popped-message-container.active{
+  display: flex;
+  opacity: 1;
+  transform: translate(-50%,-50%) scale(1);
+  pointer-events: auto;
+}
+.popped-message-container .cloned-bubble{
+  transform: none !important;
+  max-width: 100% !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 44px;
+  padding: 10px 14px 8px 14px !important;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+  pointer-events: none;
+  border: 1px solid rgba(255,255,255,0.14) !important;
+  border-radius: 18px !important;
+}
+.popped-message-container .cloned-bubble p{
+  font-size: 16px !important;
+  line-height: 21px !important;
+  margin: 0 !important;
+}
+.popped-message-container .cloned-bubble .msg-meta{
+  margin-top: 6px !important;
+}
+
+/* 3. HEADER MUST BE ON TOP OF BLUR */
+.profile-headerchatBackground{
+  z-index: 80 !important;
+}
+.delete-action-bar{
+  z-index: 80 !important;
+}
+.chat-input-bar{
+  z-index: 80 !important;
+}
+
+/* 4. ACTION PILL - Delete | React | Reply */
+.message-action-pill{
+  display: flex;
+  background: #1f1f1f;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 30px;
+  padding: 6px;
+  gap: 4px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+}
+.message-action-pill button{
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px;
+  border-radius: 20px;
+  border: none;
+  background: transparent;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  white-space: nowrap;
+}
+.message-action-pill button:hover{
+  background: rgba(255,255,255,0.12);
+}
+.message-action-pill button i,
+.message-action-pill button svg{
+  width: 18px;
+  height: 18px;
+  stroke-width: 2.2;
+}
+
+/* 5. EMOJI REACT BAR */
+.emoji-react-bar{
+  display: none;
+  background: #1f1f1f;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 30px;
+  padding: 6px 8px;
+  gap: 6px;
+  align-items: center;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+}
+.emoji-react-bar.show{
+  display: flex;
+}
+.emoji-react-bar button{
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  font-size: 22px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+.emoji-react-bar button:hover{
+  background: rgba(255,255,255,0.1);
+  transform: scale(1.15);
+}
+.emoji-plus-btn{
+  background: #2a2a2e !important;
+  width: 40px !important;
+  height: 40px !important;
+}
+.emoji-plus-btn i,
+.emoji-plus-btn svg{
+  width: 20px;
+  height: 20px;
+  color: #fff;
+}
+
+/* 6. DESKTOP HINT FOR PLUS */
+.emoji-hint{
+  display: none;
+  background: #1a1a1a;
+  border: 1px solid rgba(255,255,255,0.1);
+  padding: 7px 12px;
+  border-radius: 12px;
+  color: #888;
+  font-size: 11px;
+  text-align: center;
+  max-width: 240px;
+}
+.emoji-hint.show{
+  display: block;
+}
+
+/* 7. HEADER CANCEL BUTTON - replaces calls */
+.header-cancel-btn{
+  display: none;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.18);
+  color: #fff;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.header-cancel-btn.show{
+  display: flex;
+}
+.header-cancel-btn i,
+.header-cancel-btn svg{
+  width: 22px;
+  height: 22px;
+}
+.calls.hide-calls .phone-call,
+.calls.hide-calls .video-call{
+  display: none !important;
+}
+
+/* 8. DELETE ACTION BAR - bottom */
+.delete-action-bar{
+  display: none;
+  flex-shrink: 0;
+  background: var(--bg-header);
+  border-top: 1px solid rgba(255,255,255,0.08);
+  padding: 12px 16px 22px 16px;
+  flex-direction: column;
+  gap: 10px;
+  position: relative;
+}
+.delete-action-bar.show{
+  display: flex;
+}
+.delete-opt{
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 15px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: #1a1a1a;
+  color: #ff3b30;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  width: 100%;
+  transition: background 0.2s ease;
+  text-align: left;
+}
+.delete-opt:last-of-type{
+  color: #fff;
+}
+.delete-opt:hover{
+  background: #252525;
+}
+.delete-opt i,
+.delete-opt svg{
+  width: 20px;
+  height: 20px;
+}
+
+/* 9. REACTION BADGE - iPhone style on border */
+.msg-reaction-badge{
+  position: absolute;
+  bottom: -11px;
+  right: 6px;
+  background: #1f1f1f;
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 20px;
+  padding: 3px 7px;
+  font-size: 12px;
+  line-height: 1;
+  display: none;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+  z-index: 5;
+  min-width: 22px;
+  justify-content: center;
+}
+.msg-row.receiver .msg-reaction-badge{
+  right: auto;
+  left: 6px;
+}
+.msg-reaction-badge.show{
+  display: flex;
+}
+.msg-row .bubble{
+  overflow: visible !important;
+}
+
+/* 10. FOCUS MODE - stop scroll */
+.chat-background.focus-mode .chat-messages{
+  overflow: hidden !important;
+}
+
+/* 11. SMOOTH FOR SCROLL BTN WHEN REPLY */
+.scroll-down-btn{
+  transition: bottom 0.25s cubic-bezier(0.175,0.885,0.32,1.275), opacity 0.25s ease, transform 0.25s ease !important;
+}
 @media (min-width: 1024px){
  .chat-messages::-webkit-scrollbar{ display:block; width:5px; }
  .chat-messages::-webkit-scrollbar-thumb{ background:rgba(255,255,255,0.2); border-radius:10px; }

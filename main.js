@@ -201,3 +201,110 @@ document.addEventListener('touchmove', e => {
     // let CSS handle it, do nothing
   }
 }, {passive:true});
+
+// EDGE SWIPE TO OPEN CHAT-LOAD-LIST - MOBILE ONLY
+(function() {
+  const chatBg = document.querySelector('.chat-background');
+  const chatList = document.querySelector('.chat-load-list');
+  const sidebar = document.querySelector('.sidebar-section');
+  if (!chatBg ||!chatList) return;
+
+  let startX = 0;
+  let startY = 0;
+  let isEdgeSwipe = false;
+
+  // same function as your back arrow
+  function openChatList() {
+    chatBg.classList.remove('mobile-show');
+    chatList.classList.remove('mobile-hide');
+    if (sidebar) sidebar.classList.remove('hide-nav');
+  }
+
+  chatBg.addEventListener('touchstart', (e) => {
+    if (e.touches.length!== 1) return;
+
+    const touch = e.touches[0];
+    startX = touch.clientX;
+    startY = touch.clientY;
+
+    // CHECK 1: must start from very left edge 0-30px
+    if (startX > 30) {
+      isEdgeSwipe = false;
+      return;
+    }
+
+    // CHECK 2: if touch start on bubble/msg-row, na reply swipe - ignore edge
+    if (e.target.closest('.msg-row') || e.target.closest('.bubble') || e.target.closest('.chat-input-bar')) {
+      isEdgeSwipe = false;
+      return;
+    }
+
+    isEdgeSwipe = true;
+  }, { passive: true });
+
+  chatBg.addEventListener('touchmove', (e) => {
+    if (!isEdgeSwipe) return;
+    if (e.touches.length!== 1) return;
+
+    const touch = e.touches[0];
+    const diffX = touch.clientX - startX;
+    const diffY = touch.clientY - startY;
+
+    // CHECK 3: if vertical swipe big, na scroll - cancel edge swipe
+    if (Math.abs(diffY) > 50) {
+      isEdgeSwipe = false;
+      return;
+    }
+
+    // CHECK 4: only right swipe
+    if (diffX < 0) {
+      isEdgeSwipe = false;
+      return;
+    }
+
+    // if swipe right pass 90px - open list
+    if (diffX > 90) {
+      isEdgeSwipe = false;
+      openChatList();
+    }
+  }, { passive: true });
+
+  chatBg.addEventListener('touchend', () => {
+    isEdgeSwipe = false;
+  }, { passive: true });
+})();
+
+// GIVE SPACE BETWEEN SCROLL BTN AND REPLY PREVIEW
+(function() {
+  const replyPreview = document.querySelector('.reply-preview');
+  const scrollBtn = document.querySelector('.scroll-down-btn');
+  const chatBg = document.querySelector('.chat-background');
+  
+  if (!replyPreview || !scrollBtn) return;
+
+  // watch when reply preview show / hide
+  const observer = new MutationObserver(() => {
+    if (replyPreview.classList.contains('show')) {
+      // reply dey show — push scroll btn up
+      scrollBtn.style.bottom = '138px';
+      if (chatBg) chatBg.classList.add('has-reply');
+    } else {
+      // reply close — bring scroll btn back normal
+      scrollBtn.style.bottom = '80px';
+      if (chatBg) chatBg.classList.remove('has-reply');
+    }
+  });
+
+  observer.observe(replyPreview, { attributes: true, attributeFilter: ['class'] });
+
+  // also handle when you close via close btn — make sure e reset
+  const closeBtn = replyPreview.querySelector('.reply-preview-close');
+  if (closeBtn) {
+    closeBtn.addEventListener('click', () => {
+      setTimeout(() => {
+        scrollBtn.style.bottom = '80px';
+        if (chatBg) chatBg.classList.remove('has-reply');
+      }, 50);
+    });
+  }
+})();
