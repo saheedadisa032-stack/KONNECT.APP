@@ -46,7 +46,7 @@
     }
     .chat-load-list{
         padding-bottom: 50px;
-        padding-top: env(safe-area-inset-top) !important;
+        padding-top: 0 !important;
     }
 
     .start-up{
@@ -60,13 +60,17 @@
         display: flex !important;
         justify-content: space-between !important;
         align-items: center !important;
-        padding: 10px 15px !important;
-        padding-top: calc(10px + env(safe-area-inset-top)) !important;
+        padding: 0 15px !important;
+        padding-top: env(safe-area-inset-top) !important;
+        height: calc(52px + env(safe-area-inset-top)) !important;
+        min-height: calc(52px + env(safe-area-inset-top)) !important;
+        box-sizing: border-box !important;
     }
 
     .app-name{
         margin: 0 !important;
         font-size: 22px !important;
+        line-height: 52px !important;
     }
 
     .start-chat-btn{
@@ -86,6 +90,7 @@
         color: var(--text-main) !important;
         pointer-events: none !important;
         z-index: 2 !important;
+        margin-top: calc(env(safe-area-inset-top) / 2) !important;
     }
 
     .chat-load-list.scrolled .app-chats-mid{
@@ -142,7 +147,13 @@
     .profile-headerchatBackground{
         left: 0 !important;
         right: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
         padding-top: env(safe-area-inset-top) !important;
+        height: calc(70px + env(safe-area-inset-top)) !important;
+        min-height: calc(70px + env(safe-area-inset-top)) !important;
+        box-sizing: border-box !important;
     }
     .sidebar-section-1{
         z-index: 5 !important;
@@ -151,8 +162,9 @@
         display: flex;
         flex-direction: row;
         gap: 15px;
-        margin-top: 15px;
+        margin-top: 0 !important;
         margin-left: 15px;
+        align-items: center !important;
     }
 
     .sidebar-section.hide-nav{
