@@ -350,3 +350,64 @@
   renderEmojiBar();
   console.log('iPhone hold JS ready');
 })();
+
+
+
+// ===== FLOATING DATE ON SCROLL + TYPING BUBBLE =====
+(function() {
+  const chatMessages = document.getElementById('chatMessages');
+  const floatingDate = document.getElementById('floatingDate');
+  const typingRow = document.getElementById('typingIndicator');
+
+  if (!chatMessages ||!floatingDate) return;
+
+  let scrollTimeout = null;
+  let isScrolling = false;
+
+  function updateFloatingDate() {
+    const seps = chatMessages.querySelectorAll('.date-sep');
+    if (!seps.length) return;
+    const chatTop = chatMessages.getBoundingClientRect().top + 90;
+    let currentDate = seps[0].dataset.date || 'Today';
+    seps.forEach(sep => {
+      const rect = sep.getBoundingClientRect();
+      if (rect.top <= chatTop) {
+        currentDate = sep.dataset.date || currentDate;
+      }
+    });
+    floatingDate.textContent = currentDate;
+  }
+
+  chatMessages.addEventListener('scroll', () => {
+    updateFloatingDate();
+    if (!isScrolling) {
+      isScrolling = true;
+      floatingDate.classList.add('show');
+    }
+    clearTimeout(scrollTimeout);
+    scrollTimeout = setTimeout(() => {
+      isScrolling = false;
+      floatingDate.classList.remove('show');
+    }, 1200);
+  });
+
+  updateFloatingDate();
+
+  window.showTyping = function(show = true) {
+    if (!typingRow) return;
+    if (show) {
+      typingRow.classList.add('show');
+      setTimeout(() => {
+        chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
+      }, 100);
+    } else {
+      typingRow.classList.remove('show');
+    }
+  };
+
+  // 👇 SHOW TYPING NOW FOR YOU TO SEE - REMOVE LATER
+  showTyping(true);
+
+  const observer = new MutationObserver(() => updateFloatingDate());
+  observer.observe(chatMessages, { childList: true });
+})();
