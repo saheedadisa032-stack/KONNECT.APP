@@ -191,3 +191,13 @@ document.addEventListener('touchend', (e) => {
 document.addEventListener('gesturestart', (e) => e.preventDefault());
 document.addEventListener('gesturechange', (e) => e.preventDefault());
 document.addEventListener('gestureend', (e) => e.preventDefault());
+
+
+// light - only stops refresh, no block scroll
+document.addEventListener('touchmove', e => {
+  if (e.touches.length > 1) return;
+  const t = e.target.closest('.chat-load-list');
+  if (t && t.scrollTop <= 0 && t.scrollTop === 0) {
+    // let CSS handle it, do nothing
+  }
+}, {passive:true});
