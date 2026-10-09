@@ -189,9 +189,20 @@
   }
 
   // ===== LONG PRESS BIND =====
-  function bindRow(row) {
+   function bindRow(row) {
     let startX = 0, startY = 0;
 
+    // BLOCK iPhone default menu only
+    row.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      enterFocusMode(row); // right-click = pop immediately for desktop
+      return false;
+    });
+
+    row.addEventListener('selectstart', (e) => e.preventDefault());
+    row.addEventListener('dragstart', (e) => e.preventDefault());
+
+    // MOBILE - long press
     row.addEventListener('touchstart', (e) => {
       if (chatBg.classList.contains('focus-mode')) return;
       startX = e.touches[0].clientX;
@@ -209,23 +220,32 @@
       }
     }, {passive: true});
 
-    row.addEventListener('touchend', () => {
-      clearTimeout(pressTimer);
-    });
+    row.addEventListener('touchend', () => clearTimeout(pressTimer));
 
-    row.addEventListener('contextmenu', (e) => {
-      e.preventDefault();
-      enterFocusMode(row);
-    });
-
+    // DESKTOP - left click HOLD (600ms) + right click instant
     row.addEventListener('mousedown', (e) => {
-      if (e.button !== 0) return;
       if (chatBg.classList.contains('focus-mode')) return;
-      startX = e.clientX; startY = e.clientY;
-      pressTimer = setTimeout(() => enterFocusMode(row), 600);
+
+      if (e.button === 0) { // left click hold
+        startX = e.clientX;
+        startY = e.clientY;
+        pressTimer = setTimeout(() => enterFocusMode(row), 500);
+      }
     });
-    row.addEventListener('mouseup', () => clearTimeout(pressTimer));
+
+    row.addEventListener('mouseup', (e) => {
+      if (e.button === 0) {
+        clearTimeout(pressTimer);
+      }
+    });
+
     row.addEventListener('mouseleave', () => clearTimeout(pressTimer));
+
+    // extra: single left click to pop if you want instant (remove if you want only hold)
+    row.addEventListener('click', (e) => {
+      // if you want instant left click, uncomment below:
+      // enterFocusMode(row);
+    });
   }
 
   document.querySelectorAll('.msg-row').forEach(bindRow);

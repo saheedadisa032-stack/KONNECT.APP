@@ -1006,6 +1006,43 @@
 .scroll-down-btn{
   transition: bottom 0.25s cubic-bezier(0.175,0.885,0.32,1.275), opacity 0.25s ease, transform 0.25s ease !important;
 }
+
+/* ===== KILL IPHONE DEFAULT HOLD MENU ===== */
+.msg-row,.msg-row * {
+  -webkit-touch-callout: none!important; /* no save image, no search */
+  -webkit-user-select: none!important;
+  -moz-user-select: none!important;
+  -ms-user-select: none!important;
+  user-select: none!important;
+}
+
+.msg-row.bubble p,
+.msg-row.bubble span {
+  -webkit-touch-callout: none!important;
+  user-select: none!important;
+}
+
+/* for images and stickers */
+.image-bubble img,.sticker-bubble img {
+  -webkit-touch-callout: none!important;
+  pointer-events: none; /* JS go handle hold, not browser */
+  user-select: none!important;
+  -webkit-user-drag: none;
+}
+
+/* but allow select inside popped clone if you want copy */
+.popped-message-container.cloned-bubble {
+  -webkit-touch-callout: default!important;
+  user-select: text!important;
+}
+.popped-message-container.cloned-bubble p {
+  user-select: text!important;
+}
+
+/* kill blue highlight when tap */
+.msg-row {
+  -webkit-tap-highlight-color: transparent!important;
+}
 @media (min-width: 1024px){
  .chat-messages::-webkit-scrollbar{ display:block; width:5px; }
  .chat-messages::-webkit-scrollbar-thumb{ background:rgba(255,255,255,0.2); border-radius:10px; }
