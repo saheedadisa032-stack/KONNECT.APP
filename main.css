@@ -1,4 +1,4 @@
- .chat-load-list{
+.chat-load-list{
     position: fixed;
     width: 500px;
     background-color:var(--bg-header);
@@ -8,6 +8,9 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    padding-bottom: 0;
+    height: 100dvh;
+    box-sizing: border-box;
 }
 .start-up{
     display: flex;
@@ -61,17 +64,22 @@
 .search-wrap{
     position: relative;
     flex-shrink: 0;
+    width: 100%;
+    padding: 0 20px 0 30px;
+    box-sizing: border-box;
 }
 .search-chat{
     background-color: #1a1a1a;
-    width: 450px;
+    width: 100%;
     height: 40px;
     border: none;
     border-radius: 30px;
     color: var(--text-main);
-    font-size: 15px;
+    font-size: 16px !important;
     font-weight: 500;
-    margin-left: 30px;
+    padding-left: 16px;
+    padding-right: 45px;
+    box-sizing: border-box;
 }
 .search-chat::placeholder{
     color: var(--text-main);
@@ -87,7 +95,7 @@
     height: 20px;
     width: 20px;
     position: absolute;
-    right: 30px;
+    right: 35px;
     top: 10px;
 }
 .chat-tabs{
@@ -130,13 +138,43 @@
     flex-shrink: 0;
 }
 
+/* ===== CHAT LIST - FIXED TO STACK FROM TOP ===== */
 .chat-items-list{
     margin-top: 15px;
     display: flex;
     flex-direction: column;
-    flex: 1;
+    justify-content: flex-start;
+    align-items: stretch;
+    flex: 1 1 0;
+    min-height: 0;
     overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 20px;
 }
+
+/* ===== OUR OWN CUSTOM SCROLL - SHORT & NEAT ===== */
+.chat-items-list::-webkit-scrollbar{
+    width: 4px;
+}
+.chat-items-list::-webkit-scrollbar-track{
+    background: transparent;
+    margin: 10px 0;
+}
+.chat-items-list::-webkit-scrollbar-thumb{
+    background: #2a2a2e;
+    border-radius: 20px;
+    min-height: 40px;
+    max-height: 80px;
+}
+.chat-items-list::-webkit-scrollbar-thumb:hover{
+    background: #0a84ff;
+}
+.chat-items-list{
+    scrollbar-width: thin;
+    scrollbar-color: #2a2a2e transparent;
+}
+
 .chat-item{
     display: flex;
     align-items: center;
@@ -145,6 +183,9 @@
     cursor: pointer;
     transition: background 0.2s ease;
     border-bottom: 1px solid rgba(255,255,255,0.05);
+    width: 100%;
+    flex-shrink: 0;
+    box-sizing: border-box;
 }
 .chat-item:hover{
     background-color: rgba(255,255,255,0.06);
@@ -235,6 +276,7 @@
     padding: 40px 24px;
     text-align: center;
     overflow-y: auto;
+    min-height: 0;
 }
 .random-empty-state, .random-searching-state{ display: flex; flex-direction: column; align-items: center; }
 .random-ghost-circle{
@@ -312,9 +354,6 @@
     border-radius: 20px;
     cursor: pointer;
 }
-
-/* ===== HEADER - FIXED FOR DESKTOP ===== */
-
 .profile-extraBorder{
     display: flex;
     flex-direction: row;
@@ -384,8 +423,6 @@
     cursor: pointer;
     display: block;
 }
-
-/* ===== MOOD PILL ===== */
 .profile-with-mood{
     position: relative;
     display: flex;
@@ -447,7 +484,6 @@
     flex-direction: column;
     align-items: center;
     box-shadow: 0 8px 24px rgba(0,0,0,0.6);
-    
 }
 .mood-float.open .mood-card{ display: flex; }
 .mood-card-title{ color:#fff; font-size:13px; font-weight:700; margin:0; }
@@ -481,8 +517,6 @@
   0%,100%{ transform:scaleY(0.5); opacity:0.6 }
   50%{ transform:scaleY(1.6); opacity:1 }
 }
-
-/* ===== CHAT MESSAGES - FIXED DESKTOP PLACEMENT ===== */
 .chat-background{
     position: fixed;
     left: 555px;
@@ -495,7 +529,6 @@
     flex-direction: column;
     overflow: hidden;
 }
-
 .profile-headerchatBackground{
     position: relative;
     flex-shrink: 0;
@@ -508,7 +541,6 @@
     align-items: center;
     z-index: 10;
 }
-
 .chat-messages{
     flex: 1;
     overflow-y: auto;
@@ -517,9 +549,8 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
-    min-height: 0; /* VERY IMPORTANT - make scroll work */
+    min-height: 0;
 }
-
 .chat-input-bar{
     position: relative;
     flex-shrink: 0;
@@ -535,37 +566,43 @@
     box-sizing: border-box;
 }
 .chat-messages::-webkit-scrollbar{display:none}
-
-/* MSG ROW */
-.msg-row{ display:flex; width:100%; }
-.msg-row.receiver{ justify-content:flex-start; }
-.msg-row.sender{ justify-content:flex-end; }
-
-/* BUBBLES - BLUE NOT GREEN */
-.bubble{ max-width:75%; padding:8px 10px 6px 10px; position:relative; font-size:15px; line-height:19px; word-wrap:break-word; }
+.chat-messages{scrollbar-width:none}
+.msg-row{
+  position: relative;
+  display: flex;
+  width: 100%;
+  overflow: visible;
+  touch-action: pan-y;
+}
+.msg-row.receiver{ justify-content: flex-start; }
+.msg-row.sender{ justify-content: flex-end; }
+.msg-row .bubble{
+  position: relative;
+  z-index: 2;
+  will-change: transform;
+  transform: translateX(0px);
+  transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  max-width:75%; 
+  padding:8px 10px 6px 10px; 
+  font-size:15px; 
+  line-height:19px; 
+  word-wrap:break-word;
+}
+.msg-row.swiping .bubble{ transition: none!important; }
 .receiver-bubble{ background:#2a2a2e; color:#fff; border-radius:18px 18px 18px 4px; border:1px solid rgba(255,255,255,0.06); }
 .sender-bubble{ background:#1a5fb4; color:#fff; border-radius:18px 4px 18px 18px; border:1px solid rgba(0,0,0,0.1); }
 .sender-bubble.sending{ opacity:0.8; }
-
-/* META TIME + TICKS LUCIDE */
 .msg-meta{ display:flex; align-items:center; gap:4px; float:right; margin-left:10px; margin-top:4px; font-size:11px; opacity:0.7; }
 .msg-time{ font-size:11px; }
 .tick-icon{ width:14px; height:14px; stroke-width:2.3; }
 .tick-icon.clock{ width:12px; height:12px; }
 .tick-icon.blue{ color:#53bdeb; }
-
-/* IMAGE BORDER - BLUE */
 .image-bubble{ padding:0; background:transparent; border-radius:16px; overflow:hidden; border:2px solid #1a5fb4; position:relative; }
-.image-bubble img{ display:block; width:260px; height:auto; border-radius:14px; }
+.image-bubble img{ display:block; width:260px; max-width:100%; height:auto; border-radius:14px; }
 .msg-meta.over-image{ position:absolute; bottom:6px; right:8px; background:rgba(0,0,0,0.55); padding:2px 6px; border-radius:10px; backdrop-filter:blur(10px); float:none; margin:0; }
-
-/* STICKER BORDER - BLUE */
 .sticker-bubble{ background:rgba(255,255,255,0.04); padding:6px; border-radius:16px; border:2px solid #1a5fb4; }
 .sticker-bubble img{ width:125px; height:125px; object-fit:contain; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.3)); display:block; }
 .sticker-meta{ display:flex; justify-content:flex-end; opacity:0.6; margin-top:4px; }
-
-/* BOTTOM INPUT BAR - IPHONE 17 */
-
 .input-plus-btn{
   width:36px; height:36px; border-radius:50%; border:none;
   background:#0a84ff; color:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0;
@@ -575,12 +612,14 @@
   flex:1; background:#1a1a1a; border-radius:20px; 
   display:flex; align-items:center; padding:6px 12px; gap:8px;
   border:1px solid rgba(255,255,255,0.08); min-height:36px;
+  min-width:0;
 }
 .emoji-sticker-btn{ background:none; border:none; color:rgba(255,255,255,0.6); display:flex; padding:2px; cursor:pointer; }
 .emoji-sticker-btn i{ width:22px; height:22px; }
 #msgInput{
   flex:1; background:transparent; border:none; outline:none; color:#fff;
-  font-size:16px; resize:none; max-height:100px; line-height:22px; padding:2px 0;
+  font-size:16px !important; resize:none; max-height:100px; line-height:22px; padding:2px 0;
+  min-width:0;
 }
 .mic-send-btn{
   width:36px; height:36px; border-radius:50%; border:none;
@@ -592,10 +631,6 @@
 .mic-send-btn.sending{ background:#0a84ff; }
 .mic-send-btn.sending .icon-mic{ display:none; }
 .mic-send-btn.sending .icon-send{ display:block; }
-/* HIDE SCROLLBAR EVERYWHERE FIRST */
-.chat-messages::-webkit-scrollbar{display:none}
-.chat-messages{scrollbar-width:none}
-
 .scroll-down-btn{
   position: absolute;
   bottom: 80px;
@@ -623,7 +658,6 @@
   transform: translateY(0);
 }
 .scroll-down-btn i{ width:22px; height:22px; }
-
 .scroll-new-count{
   position: absolute;
   top: -6px;
@@ -641,53 +675,40 @@
   padding: 0 5px;
 }
 .scroll-new-count.show{ display:flex; }
-/* ===== SWIPE TO REPLY - REPAIRED ===== */
-.msg-row{
-  position: relative;
-  display: flex;
-  width: 100%;
-  overflow: visible;
-  touch-action: pan-y;
-}
-.msg-row.receiver{ justify-content: flex-start; }
-.msg-row.sender{ justify-content: flex-end; }
 
-.msg-row.bubble{
-  position: relative;
-  z-index: 2;
-  will-change: transform;
-  transform: translateX(0px);
-  transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-.msg-row.swiping.bubble{
-  transition: none!important;
-}
-
-.msg-row::after{
-  content: '↩';
+/* ===== LUCIDE SWIPE - NO EMOJI ===== */
+.swipe-reply-icon{
   position: absolute;
   top: 50%;
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   background: #2a2a2e;
   border: 1px solid rgba(255,255,255,0.1);
   border-radius: 50%;
-  opacity: 0;
-  transform: translateY(-50%) scale(0.5);
-  transition: all 0.22s ease;
   display: grid;
   place-items: center;
-  font-size: 16px;
-  color: #fff;
+  opacity: 0;
+  transform: translateY(-50%) scale(0.5);
+  transition: opacity 0.22s ease, transform 0.22s ease;
   z-index: 1;
+  pointer-events: none;
 }
-.msg-row.receiver::after{ left: 8px; }
-.msg-row.sender::after{ right: 8px; }
-.msg-row.swiping::after{
+.msg-row.receiver .swipe-reply-icon{ left: 8px; }
+.msg-row.sender .swipe-reply-icon{ right: 8px; }
+.msg-row.swiping .swipe-reply-icon{
   opacity: 1;
   transform: translateY(-50%) scale(1);
 }
-
+.msg-row.releasing .swipe-reply-icon{
+  opacity: 0!important;
+  transform: translateY(-50%) scale(0.5)!important;
+}
+.swipe-reply-icon i, .swipe-reply-icon svg{
+  width: 18px;
+  height: 18px;
+  color: #fff;
+  stroke-width: 2.2;
+}
 .reply-preview{
   flex-shrink: 0;
   display: none;
@@ -704,12 +725,7 @@
 .reply-preview-close{ background:none; border:none; color:#fff; display:flex; cursor:pointer; }
 .reply-preview-close i{ width:18px; height:18px; }
 
-/* desktop scrollbar - hide on mobile */
 @media (min-width: 1024px){
  .chat-messages::-webkit-scrollbar{ display:block; width:5px; }
  .chat-messages::-webkit-scrollbar-thumb{ background:rgba(255,255,255,0.2); border-radius:10px; }
-}
-.msg-row.releasing.swipe-reply-icon{
-  opacity: 0!important;
-  transform: translateY(-50%) scale(0.5)!important;
 }
