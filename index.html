@@ -28,6 +28,7 @@
 <link rel="stylesheet" href="general-media.css">
 <!----- desktop media scroll  link ------>
 <link rel="stylesheet" href="desktop-media.css">
+<link rel="stylesheet" href="extra.css">
     <title>KONNEKT</title>
 </head>
 <body>
@@ -323,8 +324,7 @@
   </div>
 
   <!-- CHAT BACKGROUND WITH MOOD PILL -->
- <div class="chat-background" id="chatBackground">
-  <!-- YOUR HEADER - I keep am -->
+<div class="chat-background" id="chatBackground">
   <div class="profile-headerchatBackground">
     <div class="profile-extraBorder">
       <div class="arrow-icon" onclick="closeChat()">
@@ -342,23 +342,18 @@
     <div class="calls">
       <i data-lucide="phone" class="phone-call"></i>
       <i data-lucide="video" class="video-call"></i>
-      <button class="header-cancel-btn" id="headerCancelBtn">
-        <i data-lucide="x"></i>
-      </button>
+      <button class="header-cancel-btn" id="headerCancelBtn"><i data-lucide="x"></i></button>
+      <span class="selected-count" id="selectedCount">0 selected</span>
     </div>
   </div>
 
-  <!-- 👇 ADD HERE 1 - FLOATING DATE (shows only when scrolling) -->
   <div id="floatingDate" class="floating-date">Today</div>
 
-  <!-- CHAT MESSAGES AREA -->
   <div class="chat-messages" id="chatMessages">
-    
-    <!-- 👇 ADD HERE 2 - NORMAL DATE SEP EXAMPLE -->
     <div class="date-sep" data-date="Today"><span>Today</span></div>
 
-    <!-- RECEIVER BUBBLE -->
     <div class="msg-row receiver" data-message-id="msg1">
+      <div class="select-circle"><i data-lucide="check"></i></div>
       <div class="swipe-reply-icon"><i data-lucide="reply"></i></div>
       <div class="bubble receiver-bubble">
         <p>Bro how far, you don see my code?</p>
@@ -367,158 +362,206 @@
       </div>
     </div>
 
-    <!-- SENDER - CLOCK (not sent) -->
     <div class="msg-row sender" data-message-id="msg2">
+      <div class="select-circle"><i data-lucide="check"></i></div>
       <div class="swipe-reply-icon"><i data-lucide="reply"></i></div>
       <div class="bubble sender-bubble sending">
         <p>Yes I don see am</p>
-        <span class="msg-meta">
-          <span class="msg-time">9:42 AM</span>
-          <i data-lucide="clock-3" class="tick-icon clock"></i>
-        </span>
+        <span class="msg-meta"><span class="msg-time">9:42 AM</span><i data-lucide="clock-3" class="tick-icon clock"></i></span>
         <span class="msg-reaction-badge" id="reaction-msg2"></span>
       </div>
     </div>
 
-    <!-- SENDER - SINGLE TICK -->
     <div class="msg-row sender" data-message-id="msg3">
+      <div class="select-circle"><i data-lucide="check"></i></div>
       <div class="swipe-reply-icon"><i data-lucide="reply"></i></div>
       <div class="bubble sender-bubble">
         <p>I go update am now</p>
-        <span class="msg-meta">
-          <span class="msg-time">9:42 AM</span>
-          <i data-lucide="check" class="tick-icon single"></i>
-        </span>
+        <span class="msg-meta"><span class="msg-time">9:42 AM</span><i data-lucide="check" class="tick-icon single"></i></span>
         <span class="msg-reaction-badge" id="reaction-msg3"></span>
       </div>
     </div>
 
-    <!-- 👇 ADD HERE 3 - ANOTHER DATE SEP -->
     <div class="date-sep" data-date="Yesterday"><span>Yesterday</span></div>
 
-    <!-- SENDER - DOUBLE TICK -->
     <div class="msg-row sender" data-message-id="msg4">
+      <div class="select-circle"><i data-lucide="check"></i></div>
       <div class="swipe-reply-icon"><i data-lucide="reply"></i></div>
       <div class="bubble sender-bubble">
         <p>Check your chat now</p>
-        <span class="msg-meta">
-          <span class="msg-time">9:43 AM</span>
-          <i data-lucide="check-check" class="tick-icon double"></i>
-        </span>
+        <span class="msg-meta"><span class="msg-time">9:43 AM</span><i data-lucide="check-check" class="tick-icon double"></i></span>
         <span class="msg-reaction-badge" id="reaction-msg4"></span>
       </div>
     </div>
 
-    <!-- SENDER - BLUE DOUBLE TICK (read) -->
     <div class="msg-row sender" data-message-id="msg5">
+      <div class="select-circle"><i data-lucide="check"></i></div>
       <div class="bubble sender-bubble read">
         <p>You see the new input?</p>
-        <span class="msg-meta">
-          <span class="msg-time">9:44 AM</span>
-          <i data-lucide="check-check" class="tick-icon blue"></i>
-        </span>
+        <span class="msg-meta"><span class="msg-time">9:44 AM</span><i data-lucide="check-check" class="tick-icon blue"></i></span>
         <span class="msg-reaction-badge" id="reaction-msg5"></span>
       </div>
     </div>
 
-    <!-- IMAGE BUBBLE -->
+    <!-- IMAGE WITH CAPTION UNDER -->
     <div class="msg-row sender" data-message-id="msg6">
+      <div class="select-circle"><i data-lucide="check"></i></div>
       <div class="swipe-reply-icon"><i data-lucide="reply"></i></div>
-      <div class="bubble image-bubble">
-        <img src="knnockt.jfif" alt="">
-        <span class="msg-meta over-image">
-          <span class="msg-time">9:45 AM</span>
-          <i data-lucide="check-check" class="tick-icon blue"></i>
-        </span>
+      <div class="bubble image-bubble with-caption">
+        <div class="img-wrap">
+          <img src="knnockt.jfif" alt="">
+          <span class="msg-meta over-image"><span class="msg-time">9:45 AM</span><i data-lucide="check-check" class="tick-icon blue"></i></span>
+        </div>
+        <div class="img-caption-wrap">
+          <p class="img-caption-text">This is caption under image - now under as text</p>
+        </div>
         <span class="msg-reaction-badge" id="reaction-msg6"></span>
       </div>
     </div>
 
-    <!-- STICKER BUBBLE -->
     <div class="msg-row sender" data-message-id="msg7">
+      <div class="select-circle"><i data-lucide="check"></i></div>
       <div class="swipe-reply-icon"><i data-lucide="reply"></i></div>
       <div class="bubble sticker-bubble">
         <img src="knnockt.jfif" alt="sticker">
-        <span class="msg-meta sticker-meta">
-          <span class="msg-time">9:46 AM</span>
-          <i data-lucide="check-check" class="tick-icon blue"></i>
-        </span>
+        <span class="msg-meta sticker-meta"><span class="msg-time">9:46 AM</span><i data-lucide="check-check" class="tick-icon blue"></i></span>
         <span class="msg-reaction-badge" id="reaction-msg7"></span>
       </div>
     </div>
 
-    <!-- 👇 ADD HERE 4 - TYPING INDICATOR - MUST BE LAST CHILD INSIDE chat-messages -->
-    <div class="msg-row receiver typing-row" id="typingIndicator">
-      <div class="bubble typing-bubble">
-        <div class="typing-dots">
-          <span></span><span></span><span></span>
-        </div>
+    <div class="msg-row sender" data-message-id="msg8">
+      <div class="select-circle"><i data-lucide="check"></i></div>
+      <div class="bubble voice-bubble">
+        <button class="voice-play-btn"><i data-lucide="play"></i><i data-lucide="pause" class="pause-icon" style="display:none"></i></button>
+        <div class="voice-wave" id="voiceWave-msg8"><span></span><span></span><span></span></div>
+        <span class="voice-duration">0:12</span>
+        <span class="msg-meta"><span class="msg-time">9:46 AM</span><i data-lucide="check-check" class="tick-icon blue"></i></span>
       </div>
     </div>
 
+    <!-- TYPING BOUNCING BUBBLE - ADDED BACK -->
+    <div class="msg-row receiver typing-row no-actions" id="typingIndicator">
+      <div class="bubble typing-bubble">
+        <div class="typing-dots">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <!-- BLUR OVERLAY -->
   <div class="message-focus-overlay" id="messageFocusOverlay"></div>
 
-  <!-- POPPED MESSAGE CLONE -->
   <div class="popped-message-container" id="poppedMessageContainer">
-    <div class="message-action-pill" id="messageActionPill">
-      <button data-action="delete"><i data-lucide="trash-2"></i><span>Delete</span></button>
-      <button data-action="react"><i data-lucide="smile-plus"></i><span>React</span></button>
-      <button data-action="reply"><i data-lucide="reply"></i><span>Reply</span></button>
-    </div>
     <div class="emoji-react-bar" id="emojiReactBar">
-      <button data-emoji="❤️">❤️</button>
-      <button data-emoji="😂">😂</button>
-      <button data-emoji="😮">😮</button>
-      <button data-emoji="😢">😢</button>
-      <button data-emoji="🙏">🙏</button>
+      <button data-emoji="❤️">❤️</button><button data-emoji="😂">😂</button><button data-emoji="😮">😮</button><button data-emoji="😢">😢</button><button data-emoji="🙏">🙏</button>
       <button class="emoji-plus-btn" id="emojiPlusBtn"><i data-lucide="plus"></i></button>
+    </div>
+    <div class="popped-clone" id="poppedClone"></div>
+    <div class="message-action-pill" id="messageActionPill">
+      <button data-action="reply"><i data-lucide="reply"></i><span>Reply</span></button>
+      <button data-action="react"><i data-lucide="smile-plus"></i><span>React</span></button>
+      <button data-action="select"><i data-lucide="check-square"></i><span>Select messages</span></button>
+      <button data-action="favorite"><i data-lucide="star"></i><span>Add to favorites</span></button>
+      <button data-action="delete"><i data-lucide="trash-2"></i><span>Delete</span></button>
     </div>
     <div class="emoji-hint" id="emojiHint">Press Ctrl + Cmd + Space on Mac / Win + . on Windows</div>
   </div>
 
-  <button class="scroll-down-btn" id="scrollDownBtn">
-    <i data-lucide="chevron-down"></i>
-    <span class="scroll-new-count" id="scrollNewCount">0</span>
-  </button>
+  <button class="scroll-down-btn" id="scrollDownBtn"><i data-lucide="chevron-down"></i><span class="scroll-new-count" id="scrollNewCount">0</span></button>
 
-  <!-- REPLY PREVIEW BAR -->
   <div class="reply-preview" id="replyPreview">
     <div class="reply-preview-line"></div>
-    <div class="reply-preview-content">
-      <span class="reply-preview-name" id="replyPreviewName">You</span>
-      <span class="reply-preview-text" id="replyPreviewText">message text</span>
-    </div>
-    <button class="reply-preview-close" id="replyPreviewClose">
-      <i data-lucide="x"></i>
-    </button>
+    <div class="reply-preview-content"><span class="reply-preview-name" id="replyPreviewName">You</span><span class="reply-preview-text" id="replyPreviewText">message text</span></div>
+    <button class="reply-preview-close" id="replyPreviewClose"><i data-lucide="x"></i></button>
   </div>
 
-  <div class="chat-input-bar">
-    <button class="input-plus-btn"><i data-lucide="plus"></i></button>
-    <div class="input-pill">
-      <button class="emoji-sticker-btn"><i data-lucide="smile"></i></button>
-      <textarea id="msgInput" placeholder="Message" rows="1"></textarea>
-    </div>
-    <button class="mic-send-btn" id="micSendBtn">
-      <i data-lucide="mic" class="icon-mic"></i>
-      <i data-lucide="arrow-up" class="icon-send"></i>
-    </button>
+  <div class="plus-pill-menu" id="plusPillMenu">
+    <button class="pill-btn" data-action="send-image"><i data-lucide="image"></i><span>Send image</span></button>
+    <button class="pill-btn" data-action="create-sticker"><i data-lucide="sticker"></i><span>Create sticker</span></button>
+    <button class="pill-btn" data-action="camera"><i data-lucide="camera"></i><span>Camera</span></button>
   </div>
 
-  <!-- DELETE OPTIONS BAR -->
+  <div class="sticker-border-panel" id="stickerBorderPanel">
+    <div class="sticker-panel-header">
+      <div class="panel-drag"></div>
+      <span class="sticker-panel-title">Stickers</span>
+      <button class="sticker-panel-close" id="stickerPanelClose"><i data-lucide="x"></i></button>
+    </div>
+    <div class="sticker-grid" id="stickerGrid">
+      <button class="sticker-add-box" id="stickerAddBox"><div class="dashed-plus"><i data-lucide="plus"></i></div><span>Add sticker</span></button>
+    </div>
+  </div>
+
+  <div class="chat-input-bar" id="chatInputBar">
+    <button class="input-plus-btn" id="inputPlusBtn"><i data-lucide="plus"></i></button>
+    <div class="input-pill"><button class="emoji-sticker-btn" id="emojiStickerBtn"><i data-lucide="smile"></i></button><textarea id="msgInput" placeholder="Message" rows="1"></textarea></div>
+    <button class="mic-send-btn" id="micSendBtn"><i data-lucide="mic" class="icon-mic"></i><i data-lucide="arrow-up" class="icon-send"></i></button>
+  </div>
+
   <div class="delete-action-bar" id="deleteActionBar">
-    <button class="delete-opt" data-delete="me">
-      <i data-lucide="trash"></i>
-      <span>Delete for me</span>
-    </button>
-    <button class="delete-opt" data-delete="everyone">
-      <i data-lucide="trash-2"></i>
-      <span>Delete for everyone</span>
-    </button>
+    <button class="delete-opt" data-delete="me"><i data-lucide="trash"></i><span>Delete for me</span></button>
+    <button class="delete-opt" data-delete="everyone"><i data-lucide="trash-2"></i><span>Delete for everyone</span></button>
   </div>
+
+  <div class="chat-sticker-select-mode" id="chatStickerSelectMode">
+    <div class="sticker-select-header">
+      <h4>Select from chat</h4>
+      <button id="stickerSelectClose"><i data-lucide="x"></i></button>
+    </div>
+    <div class="sticker-select-grid" id="stickerSelectGrid"></div>
+    <button class="add-sticker-confirm-btn" id="addStickerConfirmBtn">Add sticker</button>
+  </div>
+
+  <div class="image-preview-overlay" id="imagePreviewOverlay">
+    <div class="preview-blur-bg"></div>
+    <div class="preview-content">
+      <button class="preview-close" id="previewClose"><i data-lucide="x"></i></button>
+      <img id="previewImage" src="" alt="preview">
+      <div class="preview-caption-bar"><input type="text" id="captionInput" placeholder="Add a caption..."><button class="preview-send-btn" id="previewSendBtn"><i data-lucide="send"></i></button></div>
+    </div>
+  </div>
+
+  <div class="create-sticker-page" id="createStickerPage" data-auto-open="true">
+    <div class="create-sticker-header">
+      <button id="createStickerBack" class="icon-btn"><i data-lucide="arrow-left"></i></button>
+      <h3>Create sticker</h3>
+      <button id="createStickerClose" class="icon-btn close-x" title="Cancel"><i data-lucide="x"></i></button>
+    </div>
+    <div class="create-sticker-body">
+      <div class="create-canvas" id="createCanvas">
+        <img id="createStickerImage" src="" style="display:none">
+        <div class="create-placeholder" id="createPlaceholder">
+          <i data-lucide="image"></i>
+          <span>Select image from gallery</span>
+          <input type="file" id="stickerFileInput" accept="image/*" hidden>
+        </div>
+        <div class="text-overlay" id="textOverlay" contenteditable="true" data-placeholder="Add text..."></div>
+      </div>
+      <div class="create-toolbar"><button id="addTextBtn"><i data-lucide="type"></i><span>Aa</span></button></div>
+      <div class="create-actions">
+        <button class="create-add-btn secondary" id="createCancelBtn">Cancel</button>
+        <button class="create-add-btn primary" id="createAddBtn">Add to sticker pack</button>
+      </div>
+    </div>
+  </div>
+
+ <div class="voice-recording-overlay" id="voiceRecordingOverlay">
+  <div class="voice-rec-content">
+    <button class="voice-cancel" id="voiceCancelBtn"><i data-lucide="x"></i></button>
+    <div class="voice-wave-big" id="voiceWaveBig"><span></span><span></span><span></span></div>
+    <span class="voice-timer" id="voiceTimer">0:00</span>
+    <div class="voice-controls">
+      <button class="voice-stop" id="voiceStopBtn"><i data-lucide="trash-2"></i></button>
+      <button class="voice-send" id="voiceSendBtn"><i data-lucide="send"></i></button>
+    </div>
+  </div>
+</div>
+
+  <div class="toast" id="toast"><i data-lucide="star"></i><span>Added to favorites</span></div>
+  <input type="file" id="galleryInput" accept="image/*" hidden>
+  <input type="file" id="cameraInput" accept="image/*" capture="environment" hidden>
 </div>
 </main>
 
