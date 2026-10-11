@@ -1,5 +1,5 @@
 // ==========================
-// VARIABLES - LIST ONLY
+// VARIABLES - CHAT LIST ONLY
 // ==========================
 const list = document.querySelector('.chat-load-list');
 const chatLoadList = document.querySelector('.chat-load-list');
@@ -12,6 +12,8 @@ const randomSearching = document.getElementById('randomSearching');
 const startRandomBtn = document.getElementById('startRandomBtn');
 const cancelRandomBtn = document.getElementById('cancelRandomBtn');
 const backBtn = document.querySelector('.arrow-icon');
+const callsIcons = document.getElementById('callsIcons');
+const headerDeleteBtn = document.getElementById('headerDeleteBtn');
 
 const tabs = document.querySelectorAll('.tab-btn');
 const allChatItems = document.querySelectorAll('.chat-item');
@@ -29,7 +31,7 @@ const avatarGradients = [
 
 let searchingTimeout = null;
 
-// SCROLL HANDLER
+// SCROLL HANDLER - for header shadow
 function handleScroll() {
   const scrollTop = list? list.scrollTop : window.scrollY;
   if (window.innerWidth <= 768) {
@@ -40,7 +42,7 @@ function handleScroll() {
 if (list) list.addEventListener('scroll', handleScroll, { passive: true });
 window.addEventListener('scroll', handleScroll, { passive: true });
 
-// AVATAR
+// AVATAR: initials + random gradient
 document.querySelectorAll(".chat-avatar").forEach(el => {
   const name = (el.dataset.name || "User").trim();
   const parts = name.split(/\s+/);
@@ -51,7 +53,7 @@ document.querySelectorAll(".chat-avatar").forEach(el => {
   el.style.background = avatarGradients[hash % avatarGradients.length];
 });
 
-// TABS
+// TABS: All, Chats, Groups, Random
 tabs.forEach(btn => {
   btn.addEventListener('click', () => {
     tabs.forEach(b => b.classList.remove('active'));
@@ -81,7 +83,7 @@ tabs.forEach(btn => {
   });
 });
 
-// RANDOM
+// RANDOM CHAT
 startRandomBtn?.addEventListener('click', () => {
   randomIdle.style.display = 'none';
   randomSearching.style.display = 'flex';
@@ -95,7 +97,7 @@ cancelRandomBtn?.addEventListener('click', () => {
   chatBg.innerHTML = '';
 });
 
-// OPEN/CLOSE CHAT BG
+// OPEN/CLOSE CHAT BACKGROUND - mobile logic
 function openChatBg() {
   if (window.innerWidth <= 768) {
     chatLoadList.classList.add('mobile-hide');
@@ -103,6 +105,10 @@ function openChatBg() {
     document.querySelector('.sidebar-section')?.classList.add('hide-nav');
   }
   chatBg.classList.add('active-chat');
+  initChatScrollLogic();
+  // FIX: force typing show when open
+  const typing = document.getElementById('typingIndicator');
+  if(typing){ typing.classList.add('show','always-show'); }
 }
 allChatItems.forEach(item => {
   item.addEventListener('click', () => { openChatBg(); });
@@ -115,11 +121,10 @@ function closeChatBg() {
   }
   chatBg.classList.remove('active-chat');
 }
+window.closeChat = closeChatBg;
 backBtn?.addEventListener('click', () => { closeChatBg(); });
 
-// REMOVE msgInput/micBtn from here - handled in chat file
-
-// kill zoom
+// Prevent zoom
 document.addEventListener('touchmove', (e) => {
   if (e.touches.length > 1) e.preventDefault();
 }, { passive: false });
@@ -168,7 +173,7 @@ document.addEventListener('gestureend', (e) => e.preventDefault());
   chatBgEl.addEventListener('touchend', () => { isEdgeSwipe = false; }, { passive: true });
 })();
 
-// SCROLL BTN SPACE
+// SCROLL BUTTON SPACE when reply preview shows
 (function() {
   const replyPreview = document.querySelector('.reply-preview');
   const scrollBtn = document.querySelector('.scroll-down-btn');
@@ -184,15 +189,101 @@ document.addEventListener('gestureend', (e) => e.preventDefault());
     }
   });
   observer.observe(replyPreview, { attributes: true, attributeFilter: ['class'] });
-  const closeBtn = replyPreview.querySelector('.reply-preview-close');
-  if (closeBtn) {
-    closeBtn.addEventListener('click', () => {
-      setTimeout(() => {
-        scrollBtn.style.bottom = '80px';
-        if (chatBgEl) chatBgEl.classList.remove('has-reply');
-      }, 50);
-    });
-  }
 })();
 
+// ==========================
+// DATE SEPARATOR FLOATING ON SCROLL - SMALL
+// ==========================
+let floatingDateTimeout = null;
+function initChatScrollLogic() {
+  const chatMessages = document.getElementById('chatMessages');
+  const floatingDate = document.getElementById('floatingDate');
+  if (!chatMessages ||!floatingDate) return;
+
+  const dateSeps = chatMessages.querySelectorAll('.date-sep');
+  if (dateSeps.length === 0) return;
+
+  chatMessages.addEventListener('scroll', () => {
+    let currentDate = null;
+    dateSeps.forEach(sep => {
+      const rect = sep.getBoundingClientRect();
+      const containerRect = chatMessages.getBoundingClientRect();
+      if (rect.top <= containerRect.top + 100) {
+        currentDate = sep.getAttribute('data-date');
+      }
+    });
+    if (currentDate) {
+      floatingDate.textContent = currentDate;
+      floatingDate.classList.add('show');
+      clearTimeout(floatingDateTimeout);
+      floatingDateTimeout = setTimeout(() => {
+        floatingDate.classList.remove('show');
+      }, 1500);
+    }
+  }, { passive: true });
+}
+
+// ==========================
+// FIX: SELECT MODE STILL SCROLLABLE
+// ==========================
+window.enableSelectModeScroll = function(){
+  const cm = document.getElementById('chatMessages');
+  if(cm){
+    cm.style.overflowY = 'auto';
+    cm.style.pointerEvents = 'auto';
+  }
+  document.getElementById('chatBackground')?.classList.add('select-mode','select-mode-active');
+}
+window.disableSelectModeScroll = function(){
+  document.getElementById('chatBackground')?.classList.remove('select-mode','select-mode-active');
+}
+
+// Hook into existing select mode if you have function
+const _origEnterSelect = window.enterSelectMode;
+window.enterSelectMode = function(...args){
+  if(_origEnterSelect) _origEnterSelect(...args);
+  window.enableSelectModeScroll();
+}
+const _origExitSelect = window.exitSelectMode;
+window.exitSelectMode = function(...args){
+  if(_origExitSelect) _origExitSelect(...args);
+  window.disableSelectModeScroll();
+}
+
+// ==========================
+// FIX: TYPING ALWAYS SHOW BOUNCING
+// ==========================
+window.showTyping = function() {
+  const typing = document.getElementById('typingIndicator');
+  if (!typing) return;
+  typing.classList.add('show','always-show');
+  typing.style.display='flex';
+  const chatMessages = document.getElementById('chatMessages');
+  if (chatMessages) chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+window.hideTyping = function() {
+  // user say dont hide, so keep showing
+  const typing = document.getElementById('typingIndicator');
+  if (!typing) return;
+  typing.classList.add('show','always-show');
+  typing.style.display='flex';
+}
+
+// force typing visible on load
+setTimeout(()=>{ window.showTyping(); }, 300);
+
+// ==========================
+// FIX: HOLD PILL MIDDLE IF LONG, UNDER IF SHORT
+// ==========================
+window.positionPillSmart = function(msgRow){
+  const container = document.getElementById('poppedMessageContainer');
+  if(!container ||!msgRow) return;
+  const text = msgRow.querySelector('p')?.innerText || '';
+  const isLong = text.length > 80 || msgRow.offsetHeight > 130;
+  container.classList.toggle('long-msg', isLong);
+  container.classList.toggle('short-msg',!isLong);
+  container.setAttribute('data-long', isLong?'true':'false');
+}
+
 if(window.lucide) lucide.createIcons();
+initChatScrollLogic();

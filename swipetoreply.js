@@ -1,29 +1,66 @@
-// ===== SWIPE TO REPLY - FIXED HORIZONTAL VS VERTICAL SCROLL =====
+// ===== SWIPE TO REPLY - FIXED + SELECT SCROLLABLE + QUOTED REPLY + THUMB =====
 (() => {
   const chatMessages = document.getElementById('chatMessages');
   const replyPreview = document.getElementById('replyPreview');
   const replyPreviewName = document.getElementById('replyPreviewName');
   const replyPreviewText = document.getElementById('replyPreviewText');
   const replyPreviewClose = document.getElementById('replyPreviewClose');
+  const replyPreviewThumb = document.getElementById('replyPreviewThumb');
   const msgInputEl = document.getElementById('msgInput');
-  const chatBg = document.getElementById('chatBackground');
 
   if(!chatMessages) return;
 
   let sX = 0, sY = 0, cX = 0, cY = 0;
   let curRow = null;
   let swiping = false;
-  let isHorizontal = null; // null = not decided yet
+  let isHorizontal = null;
   let vib = false;
+  let currentReplyData = null;
 
   function setReply(row){
     if(row.classList.contains('no-actions')) return;
-    if(row.classList.contains('select-mode')) return;
-    const p = row.querySelector('.bubble p');
-    const txt = p? p.innerText : row.querySelector('.voice-duration')?.innerText || 'Voice message';
+    // allow even if select-mode active but don't block scroll
+    const bubble = row.querySelector('.bubble');
+    if(!bubble) return;
+    const p = bubble.querySelector('p:not(.img-caption-text)');
+    const img = bubble.querySelector('.image-bubble img,.sticker-bubble img,.img-wrap img');
+    const vid = bubble.querySelector('video');
+
+    let txt = 'Message';
+    if(p && p.innerText.trim()) txt = p.innerText.trim();
+    else if(bubble.classList.contains('image-bubble')) txt = bubble.querySelector('.img-caption-text')?.innerText || 'Photo';
+    else if(bubble.classList.contains('video-bubble')) txt = bubble.querySelector('.img-caption-text')?.innerText || 'Video';
+    else if(bubble.classList.contains('sticker-bubble')) txt = 'Sticker';
+    else if(bubble.classList.contains('voice-bubble')) txt = row.querySelector('.voice-duration')?.innerText || 'Voice message';
+
     const isMe = row.classList.contains('sender');
     replyPreviewName.textContent = isMe? 'You' : 'Joshua dayo';
     replyPreviewText.textContent = txt.slice(0,80);
+
+    if(replyPreviewThumb){
+      if(img && img.src &&!img.src.includes('data:')){
+        replyPreviewThumb.src = img.src;
+        replyPreviewThumb.style.display = 'block';
+      } else if(vid){
+        if(vid.poster){
+          replyPreviewThumb.src = vid.poster;
+          replyPreviewThumb.style.display = 'block';
+        } else {
+          replyPreviewThumb.style.display = 'none';
+        }
+      } else {
+        replyPreviewThumb.style.display = 'none';
+      }
+    }
+
+    currentReplyData = {
+      name: replyPreviewName.textContent,
+      text: txt.slice(0,80),
+      thumb: img? img.src : (vid? (vid.poster || '') : ''),
+      isImage:!!img,
+      isVideo:!!vid
+    };
+
     replyPreview.classList.add('show');
     const scrollBtn = document.getElementById('scrollDownBtn');
     if(scrollBtn) scrollBtn.style.bottom = '138px';
@@ -31,25 +68,34 @@
     if(window.lucide) lucide.createIcons();
   }
 
-  replyPreviewClose?.addEventListener('click', () => {
+  window.getCurrentReplyData = () => currentReplyData;
+  window.clearReplyData = () => {
+    currentReplyData = null;
     replyPreview.classList.remove('show');
+    if(replyPreviewThumb) replyPreviewThumb.style.display = 'none';
     const scrollBtn = document.getElementById('scrollDownBtn');
     if(scrollBtn) scrollBtn.style.bottom = '80px';
+  };
+
+  replyPreviewClose?.addEventListener('click', () => {
+    window.clearReplyData();
   });
 
   chatMessages.addEventListener('touchstart', e => {
     const row = e.target.closest('.msg-row');
     if(!row) return;
     if(row.classList.contains('no-actions')) return;
-    if(document.querySelector('.popped-message-container.active')) return; // no swipe when hold pop dey
-    if(row.classList.contains('select-mode')) return;
+    if(row.classList.contains('call-row')) return;
+    if(document.querySelector('.popped-message-container.active')) return;
+    // FIX: allow swipe even in select-mode but still scrollable
+    if(row.classList.contains('select-mode') && e.touches.length>1) return;
 
     curRow = row;
     sX = e.touches[0].clientX;
     sY = e.touches[0].clientY;
     cX = 0; cY = 0;
     swiping = false;
-    isHorizontal = null; // reset detection
+    isHorizontal = null;
     vib = false;
     curRow.classList.remove('releasing');
   }, {passive:true});
@@ -61,20 +107,24 @@
     cX = touchX - sX;
     cY = touchY - sY;
 
-    // FIRST TIME - DECIDE IF NA HORIZONTAL OR VERTICAL
     if(isHorizontal === null){
-      if(Math.abs(cX) < 5 && Math.abs(cY) < 5) return; // small move, wait
-      isHorizontal = Math.abs(cX) > Math.abs(cY); // true = horizontal swipe, false = vertical scroll
+      if(Math.abs(cX) < 5 && Math.abs(cY) < 5) return;
+      isHorizontal = Math.abs(cX) > Math.abs(cY);
       if(!isHorizontal){
-        // na vertical scroll, cancel swipe
+        // FIX: vertical move = allow chat scroll even in select mode
         curRow = null;
         return;
       }
     }
+    if(!isHorizontal) return;
 
-    if(!isHorizontal) return; // na scroll, no swipe
+    // if in select mode, dont swipe, allow scroll
+    if(curRow.classList.contains('select-mode')){
+      curRow = null;
+      isHorizontal = null;
+      return;
+    }
 
-    // ONLY RIGHT SWIPE
     if(cX < 0) cX = 0;
     if(cX > 80) cX = 80;
 
@@ -88,7 +138,6 @@
         if(navigator.vibrate) navigator.vibrate(15);
         vib = true;
       }
-      // prevent vertical scroll when we confirm horizontal
       if(e.cancelable && cX > 12) e.preventDefault();
     }
   }, {passive:false});
@@ -111,7 +160,7 @@
     const rowRef = curRow;
     setTimeout(() => {
       rowRef.classList.remove('releasing');
-      bubble.style.transition = '';
+      if(rowRef.querySelector('.bubble')) rowRef.querySelector('.bubble').style.transition = '';
     }, 300);
 
     curRow = null; cX = 0; cY = 0; swiping = false; isHorizontal = null;
@@ -126,11 +175,18 @@
     curRow = null; isHorizontal = null;
   }, {passive:true});
 
-  // desktop double click
   chatMessages.addEventListener('dblclick', e => {
     const row = e.target.closest('.msg-row');
     if(!row) return;
     if(row.classList.contains('no-actions')) return;
+    if(row.classList.contains('call-row')) return;
     setReply(row);
+  });
+
+  chatMessages.addEventListener('click', e => {
+    const replyIcon = e.target.closest('.swipe-reply-icon');
+    if(!replyIcon) return;
+    const row = replyIcon.closest('.msg-row');
+    if(row) setReply(row);
   });
 })();

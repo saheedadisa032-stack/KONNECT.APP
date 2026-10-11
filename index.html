@@ -325,6 +325,7 @@
 
   <!-- CHAT BACKGROUND WITH MOOD PILL -->
 <div class="chat-background" id="chatBackground">
+  <!-- Header -->
   <div class="profile-headerchatBackground">
     <div class="profile-extraBorder">
       <div class="arrow-icon" onclick="closeChat()">
@@ -339,17 +340,24 @@
       </div>
       <p class="chat-name">Joshua dayo</p>
     </div>
-    <div class="calls">
+    <div class="calls" id="callsIcons">
       <i data-lucide="phone" class="phone-call"></i>
       <i data-lucide="video" class="video-call"></i>
       <button class="header-cancel-btn" id="headerCancelBtn"><i data-lucide="x"></i></button>
-      <span class="selected-count" id="selectedCount">0 selected</span>
+      <span class="selected-count" id="selectedCount">0</span>
+      <button class="header-delete-btn" id="headerDeleteBtn"><i data-lucide="trash-2"></i></button>
     </div>
   </div>
 
   <div id="floatingDate" class="floating-date">Today</div>
 
   <div class="chat-messages" id="chatMessages">
+    
+    <div class="encryption-notice">
+      <i data-lucide="lock" class="enc-lock"></i>
+      <p>Messages and calls are end-to-end encrypted. No one outside of this chat, not even Konnekt, can read or listen to them. Tap to learn more.</p>
+    </div>
+
     <div class="date-sep" data-date="Today"><span>Today</span></div>
 
     <div class="msg-row receiver" data-message-id="msg1">
@@ -357,7 +365,7 @@
       <div class="swipe-reply-icon"><i data-lucide="reply"></i></div>
       <div class="bubble receiver-bubble">
         <p>Bro how far, you don see my code?</p>
-        <span class="msg-meta"><span class="msg-time">9:41 AM</span></span>
+        <span class="msg-meta right-meta"><span class="msg-time">9:41 AM</span></span>
         <span class="msg-reaction-badge" id="reaction-msg1"></span>
       </div>
     </div>
@@ -367,30 +375,33 @@
       <div class="swipe-reply-icon"><i data-lucide="reply"></i></div>
       <div class="bubble sender-bubble sending">
         <p>Yes I don see am</p>
-        <span class="msg-meta"><span class="msg-time">9:42 AM</span><i data-lucide="clock-3" class="tick-icon clock"></i></span>
-        <span class="msg-reaction-badge" id="reaction-msg2"></span>
+        <span class="msg-meta right-meta"><span class="msg-time">9:42 AM</span><i data-lucide="clock-3" class="tick-icon clock"></i></span>
       </div>
     </div>
 
-    <div class="msg-row sender" data-message-id="msg3">
-      <div class="select-circle"><i data-lucide="check"></i></div>
-      <div class="swipe-reply-icon"><i data-lucide="reply"></i></div>
-      <div class="bubble sender-bubble">
-        <p>I go update am now</p>
-        <span class="msg-meta"><span class="msg-time">9:42 AM</span><i data-lucide="check" class="tick-icon single"></i></span>
-        <span class="msg-reaction-badge" id="reaction-msg3"></span>
+    <div class="msg-row no-actions call-row" data-message-id="call1">
+      <div class="bubble call-bubble missed">
+        <i data-lucide="phone-missed" class="call-icon missed"></i>
+        <div class="call-info"><span>Missed voice call</span><span class="call-time">Tap to call back</span></div>
+      </div>
+    </div>
+
+    <div class="msg-row no-actions call-row" data-message-id="call2">
+      <div class="bubble call-bubble ended">
+        <i data-lucide="video" class="call-icon"></i>
+        <div class="call-info"><span>Video call - 2:30</span><span class="call-time">Today, 9:42 AM</span></div>
       </div>
     </div>
 
     <div class="date-sep" data-date="Yesterday"><span>Yesterday</span></div>
+    <div class="unread-sep" id="unreadSep"><span>3 UNREAD MESSAGES</span></div>
 
     <div class="msg-row sender" data-message-id="msg4">
       <div class="select-circle"><i data-lucide="check"></i></div>
       <div class="swipe-reply-icon"><i data-lucide="reply"></i></div>
       <div class="bubble sender-bubble">
         <p>Check your chat now</p>
-        <span class="msg-meta"><span class="msg-time">9:43 AM</span><i data-lucide="check-check" class="tick-icon double"></i></span>
-        <span class="msg-reaction-badge" id="reaction-msg4"></span>
+        <span class="msg-meta right-meta"><span class="msg-time">9:43 AM</span><i data-lucide="check" class="tick-icon single"></i></span>
       </div>
     </div>
 
@@ -398,24 +409,54 @@
       <div class="select-circle"><i data-lucide="check"></i></div>
       <div class="bubble sender-bubble read">
         <p>You see the new input?</p>
-        <span class="msg-meta"><span class="msg-time">9:44 AM</span><i data-lucide="check-check" class="tick-icon blue"></i></span>
-        <span class="msg-reaction-badge" id="reaction-msg5"></span>
+        <span class="msg-meta right-meta"><span class="msg-time">9:44 AM</span><i data-lucide="check-check" class="tick-icon blue"></i></span>
       </div>
     </div>
 
-    <!-- IMAGE WITH CAPTION UNDER -->
     <div class="msg-row sender" data-message-id="msg6">
       <div class="select-circle"><i data-lucide="check"></i></div>
       <div class="swipe-reply-icon"><i data-lucide="reply"></i></div>
       <div class="bubble image-bubble with-caption">
         <div class="img-wrap">
           <img src="knnockt.jfif" alt="">
-          <span class="msg-meta over-image"><span class="msg-time">9:45 AM</span><i data-lucide="check-check" class="tick-icon blue"></i></span>
+          <span class="msg-meta over-image right-meta"><span class="msg-time">9:45 AM</span><i data-lucide="check-check" class="tick-icon blue"></i></span>
         </div>
         <div class="img-caption-wrap">
-          <p class="img-caption-text">This is caption under image - now under as text</p>
+          <p class="img-caption-text">This is caption under image - now under as text and e go break no stretch image</p>
         </div>
-        <span class="msg-reaction-badge" id="reaction-msg6"></span>
+      </div>
+    </div>
+
+    <div class="msg-row sender" data-message-id="msg6-video">
+      <div class="select-circle"><i data-lucide="check"></i></div>
+      <div class="swipe-reply-icon"><i data-lucide="reply"></i></div>
+      <div class="bubble video-bubble with-caption">
+        <div class="video-wrap">
+          <video src="" poster="knnockt.jfif"></video>
+          <button class="video-play-center"><i data-lucide="play"></i></button>
+          <span class="video-duration">00:12</span>
+          <span class="msg-meta over-image right-meta"><span class="msg-time">9:45 AM</span><i data-lucide="check-check" class="tick-icon blue"></i></span>
+        </div>
+        <div class="img-caption-wrap">
+          <p class="img-caption-text">Video caption example wey no dey stretch</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="msg-row sender" data-message-id="msg6-reply">
+      <div class="select-circle"><i data-lucide="check"></i></div>
+      <div class="swipe-reply-icon"><i data-lucide="reply"></i></div>
+      <div class="bubble sender-bubble">
+        <div class="quoted-reply">
+          <div class="quoted-line"></div>
+          <img class="quoted-thumb" src="knnockt.jfif" alt="" style="display:none">
+          <div class="quoted-content">
+            <span class="quoted-name">Joshua dayo</span>
+            <span class="quoted-text">Bro how far...</span>
+          </div>
+        </div>
+        <p>Reply with quoted inside</p>
+        <span class="msg-meta right-meta"><span class="msg-time">9:45 AM</span><i data-lucide="check-check" class="tick-icon blue"></i></span>
       </div>
     </div>
 
@@ -424,8 +465,7 @@
       <div class="swipe-reply-icon"><i data-lucide="reply"></i></div>
       <div class="bubble sticker-bubble">
         <img src="knnockt.jfif" alt="sticker">
-        <span class="msg-meta sticker-meta"><span class="msg-time">9:46 AM</span><i data-lucide="check-check" class="tick-icon blue"></i></span>
-        <span class="msg-reaction-badge" id="reaction-msg7"></span>
+        <span class="msg-meta sticker-meta right-meta"><span class="msg-time">9:46 AM</span><i data-lucide="check-check" class="tick-icon blue"></i></span>
       </div>
     </div>
 
@@ -435,25 +475,22 @@
         <button class="voice-play-btn"><i data-lucide="play"></i><i data-lucide="pause" class="pause-icon" style="display:none"></i></button>
         <div class="voice-wave" id="voiceWave-msg8"><span></span><span></span><span></span></div>
         <span class="voice-duration">0:12</span>
-        <span class="msg-meta"><span class="msg-time">9:46 AM</span><i data-lucide="check-check" class="tick-icon blue"></i></span>
+        <span class="msg-meta right-meta"><span class="msg-time">9:46 AM</span><i data-lucide="check-check" class="tick-icon blue"></i></span>
       </div>
     </div>
 
-    <!-- TYPING BOUNCING BUBBLE - ADDED BACK -->
-    <div class="msg-row receiver typing-row no-actions" id="typingIndicator">
+    <!-- TYPING ALWAYS VISIBLE -->
+    <div class="msg-row receiver typing-row no-actions show always-show" id="typingIndicator">
       <div class="bubble typing-bubble">
-        <div class="typing-dots">
-          <span></span>
-          <span></span>
-          <span></span>
-        </div>
+        <div class="typing-dots"><span></span><span></span><span></span></div>
       </div>
     </div>
   </div>
 
   <div class="message-focus-overlay" id="messageFocusOverlay"></div>
 
-  <div class="popped-message-container" id="poppedMessageContainer">
+  <!-- HOLD PILL - MIDDLE IF LONG, UNDER IF SHORT -->
+  <div class="popped-message-container" id="poppedMessageContainer" data-long="false">
     <div class="emoji-react-bar" id="emojiReactBar">
       <button data-emoji="❤️">❤️</button><button data-emoji="😂">😂</button><button data-emoji="😮">😮</button><button data-emoji="😢">😢</button><button data-emoji="🙏">🙏</button>
       <button class="emoji-plus-btn" id="emojiPlusBtn"><i data-lucide="plus"></i></button>
@@ -473,12 +510,13 @@
 
   <div class="reply-preview" id="replyPreview">
     <div class="reply-preview-line"></div>
+    <img id="replyPreviewThumb" class="reply-thumb" style="display:none" src="" alt="">
     <div class="reply-preview-content"><span class="reply-preview-name" id="replyPreviewName">You</span><span class="reply-preview-text" id="replyPreviewText">message text</span></div>
     <button class="reply-preview-close" id="replyPreviewClose"><i data-lucide="x"></i></button>
   </div>
 
   <div class="plus-pill-menu" id="plusPillMenu">
-    <button class="pill-btn" data-action="send-image"><i data-lucide="image"></i><span>Send image</span></button>
+    <button class="pill-btn" data-action="send-file"><i data-lucide="file-image"></i><span>Send file</span></button>
     <button class="pill-btn" data-action="create-sticker"><i data-lucide="sticker"></i><span>Create sticker</span></button>
     <button class="pill-btn" data-action="camera"><i data-lucide="camera"></i><span>Camera</span></button>
   </div>
@@ -505,24 +543,46 @@
     <button class="delete-opt" data-delete="everyone"><i data-lucide="trash-2"></i><span>Delete for everyone</span></button>
   </div>
 
+  <!-- ADD STICKER UI CENTERED WRAP -->
   <div class="chat-sticker-select-mode" id="chatStickerSelectMode">
     <div class="sticker-select-header">
       <h4>Select from chat</h4>
       <button id="stickerSelectClose"><i data-lucide="x"></i></button>
     </div>
-    <div class="sticker-select-grid" id="stickerSelectGrid"></div>
-    <button class="add-sticker-confirm-btn" id="addStickerConfirmBtn">Add sticker</button>
+    <div class="sticker-select-center-wrap">
+      <div class="sticker-select-grid" id="stickerSelectGrid"></div>
+      <button class="add-sticker-confirm-btn" id="addStickerConfirmBtn">Add sticker</button>
+    </div>
   </div>
 
+  <!-- FILE PREVIEW WITH CANCEL X AT TOP WHERE CALL DEY -->
   <div class="image-preview-overlay" id="imagePreviewOverlay">
     <div class="preview-blur-bg"></div>
-    <div class="preview-content">
+    <div class="preview-header">
       <button class="preview-close" id="previewClose"><i data-lucide="x"></i></button>
-      <img id="previewImage" src="" alt="preview">
+      <span class="preview-title">Preview</span>
+      <span style="flex:1"></span>
+      <button class="preview-header-cancel-text" id="previewCancelText">Cancel</button>
+    </div>
+    <div class="preview-content">
+      <img id="previewImage" src="" alt="preview" style="display:none">
+      <video id="previewVideo" src="" controls style="display:none"></video>
       <div class="preview-caption-bar"><input type="text" id="captionInput" placeholder="Add a caption..."><button class="preview-send-btn" id="previewSendBtn"><i data-lucide="send"></i></button></div>
     </div>
   </div>
 
+  <div class="video-full-overlay" id="videoFullOverlay">
+    <div class="preview-blur-bg"></div>
+    <div class="preview-header">
+      <button class="preview-close" id="videoFullClose"><i data-lucide="x"></i></button>
+    </div>
+    <div class="preview-content">
+      <video id="videoFullPlayer" src="" controls autoplay></video>
+      <p class="video-full-caption" id="videoFullCaption"></p>
+    </div>
+  </div>
+
+  <!-- CREATE STICKER - BUTTONS JUST UNDER CANVAS -->
   <div class="create-sticker-page" id="createStickerPage" data-auto-open="true">
     <div class="create-sticker-header">
       <button id="createStickerBack" class="icon-btn"><i data-lucide="arrow-left"></i></button>
@@ -530,38 +590,56 @@
       <button id="createStickerClose" class="icon-btn close-x" title="Cancel"><i data-lucide="x"></i></button>
     </div>
     <div class="create-sticker-body">
-      <div class="create-canvas" id="createCanvas">
-        <img id="createStickerImage" src="" style="display:none">
-        <div class="create-placeholder" id="createPlaceholder">
-          <i data-lucide="image"></i>
-          <span>Select image from gallery</span>
-          <input type="file" id="stickerFileInput" accept="image/*" hidden>
+      <div class="create-canvas-wrap">
+        <div class="create-canvas" id="createCanvas">
+          <img id="createStickerImage" src="" style="display:none">
+          <video id="createStickerVideo" src="" loop muted playsinline style="display:none"></video>
+          <div class="create-placeholder" id="createPlaceholder">
+            <i data-lucide="image"></i>
+            <span>Select image or video</span>
+            <input type="file" id="stickerFileInput" accept="image/*,video/*" hidden>
+          </div>
+          <div class="text-overlay-wrapper" id="textOverlayWrapper" style="display:none">
+            <div class="text-overlay" id="textOverlay" contenteditable="true" data-placeholder="Add text..."></div>
+            <span class="resize-handle"></span>
+          </div>
         </div>
-        <div class="text-overlay" id="textOverlay" contenteditable="true" data-placeholder="Add text..."></div>
-      </div>
-      <div class="create-toolbar"><button id="addTextBtn"><i data-lucide="type"></i><span>Aa</span></button></div>
-      <div class="create-actions">
-        <button class="create-add-btn secondary" id="createCancelBtn">Cancel</button>
-        <button class="create-add-btn primary" id="createAddBtn">Add to sticker pack</button>
+        <div class="video-trim-bar" id="videoTrimBar" style="display:none">
+          <div class="trim-track"><div class="trim-progress" id="trimProgress"></div></div>
+          <div class="trim-inputs">
+            <input type="range" id="trimStart" min="0" max="3" value="0" step="0.1">
+            <input type="range" id="trimEnd" min="0" max="3" value="3" step="0.1">
+          </div>
+          <span id="trimLabel">0s - 3s (max 3s)</span>
+        </div>
+        <div class="create-toolbar">
+          <button id="addTextBtn"><i data-lucide="type"></i><span>Aa</span></button>
+          <button id="boldTextBtn"><i data-lucide="bold"></i><span>Bold</span></button>
+          <button id="zoomTextBtn"><i data-lucide="zoom-in"></i><span>Zoom</span></button>
+        </div>
+        <div class="create-actions">
+          <button class="create-add-btn secondary" id="createCancelBtn">Cancel</button>
+          <button class="create-add-btn primary" id="createAddBtn">Add to sticker pack</button>
+        </div>
       </div>
     </div>
   </div>
 
- <div class="voice-recording-overlay" id="voiceRecordingOverlay">
-  <div class="voice-rec-content">
-    <button class="voice-cancel" id="voiceCancelBtn"><i data-lucide="x"></i></button>
-    <div class="voice-wave-big" id="voiceWaveBig"><span></span><span></span><span></span></div>
-    <span class="voice-timer" id="voiceTimer">0:00</span>
-    <div class="voice-controls">
-      <button class="voice-stop" id="voiceStopBtn"><i data-lucide="trash-2"></i></button>
-      <button class="voice-send" id="voiceSendBtn"><i data-lucide="send"></i></button>
+  <div class="voice-recording-overlay" id="voiceRecordingOverlay">
+    <div class="voice-rec-content">
+      <button class="voice-cancel" id="voiceCancelBtn"><i data-lucide="x"></i></button>
+      <div class="voice-wave-big" id="voiceWaveBig"><span></span><span></span><span></span></div>
+      <span class="voice-timer" id="voiceTimer">0:00</span>
+      <div class="voice-controls">
+        <button class="voice-stop" id="voiceStopBtn"><i data-lucide="trash-2"></i></button>
+        <button class="voice-send" id="voiceSendBtn"><i data-lucide="arrow-up"></i></button>
+      </div>
     </div>
   </div>
-</div>
 
   <div class="toast" id="toast"><i data-lucide="star"></i><span>Added to favorites</span></div>
-  <input type="file" id="galleryInput" accept="image/*" hidden>
-  <input type="file" id="cameraInput" accept="image/*" capture="environment" hidden>
+  <input type="file" id="galleryInput" accept="image/*,video/*" hidden>
+  <input type="file" id="cameraInput" accept="image/*,video/*" capture="environment" hidden>
 </div>
 </main>
 
