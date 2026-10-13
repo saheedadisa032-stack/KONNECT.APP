@@ -523,6 +523,19 @@
   <!-- Crop = WhatsApp iPhone 17 style direct pinch/drag on image -->
   <!-- Video must trim to 3s max -->
   <div class="create-sticker-page" id="createStickerPage">
+    <!-- FFMPEG 2MB LOADER + CUTTING LOADER -->
+<div id="ffmpegLoader">
+  <div class="ffmpeg-dot"></div>
+  <span>Preparing editor...</span>
+</div>
+
+<div id="cuttingLoader">
+  <div class="cut-box">
+    <div class="cut-spinner"></div>
+    <span class="cut-text">Cutting video to 3s...</span>
+    <div class="cut-bar"><div class="cut-progress"></div></div>
+  </div>
+</div>
     <div class="create-sticker-header">
       <button id="createStickerBack" class="icon-btn"><i data-lucide="arrow-left"></i></button>
       <h3>Create sticker</h3>
