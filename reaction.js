@@ -1,12 +1,5 @@
 // reaction-and-other.js
-// Handles: hold pill, select mode, stickers, voice play fix, file preview, create sticker real cut 6s
-// THIS VERSION FIX:
-// - Sticker video now replays loop in panel AND chat (was vice versa)
-// - Normal chat video stays normal (play button, not loop) - like WhatsApp
-// - Max cut now 6s not 3s
-// - Video full overlay tap anywhere outside video = close
-// - Plus pill - DO NOT TOUCH
-
+// Handles: hold pill, select mode, stickers VIDEO FIX, voice, preview, create sticker 6s, + iOS notify
 (function() {
   const chatMessages = document.getElementById('chatMessages');
   const overlay = document.getElementById('messageFocusOverlay');
@@ -91,10 +84,11 @@
   let currentRow = null, currentId = null, pressTimer = null;
   let selectedMessages = new Set();
   let stickers = JSON.parse(localStorage.getItem('my_stickers') || '[]');
-  let memoryVideoStickers = []; // 6s cut videos in memory (no DB for UI)
+  // Normalize old string stickers to objects
+  stickers = stickers.map(s => typeof s === 'string'? {src:s, type:'image'} : s);
+  let memoryVideoStickers = [];
   let voiceInterval = null, voiceSec = 0, voiceStartTime = 0;
   let previewType = 'image', previewObjectUrl = '';
-  let isCropped = false;
   let cropScale = 1, cropX = 0, cropY = 0, lastDist = 0, lastX = 0, lastY = 0;
   let textScale = 1;
   let originalVideoFile = null;
@@ -102,26 +96,75 @@
 
   function showToast(msg="Added"){
     if(!toast) return;
-    toast.querySelector('span').textContent = msg;
+    const span = toast.querySelector('span');
+    if(span) span.textContent = msg;
     toast.classList.add('show');
     setTimeout(()=> toast.classList.remove('show'), 2000);
     if(window.lucide) lucide.createIcons();
   }
 
-  window.addCallMessage = function(type){
-    const id = 'call_'+Date.now();
-    let icon = 'phone', label = 'Voice call', sub = '', missed = false;
-    if(type==='missed-voice'){ icon='phone-missed'; label='Missed voice call'; sub='Tap to call back'; missed=true; }
-    if(type==='missed-video'){ icon='video-off'; label='Missed video call'; sub='Tap to call back'; missed=true; }
-    if(type==='voice-ended'){ icon='phone'; label='Voice call ended'; sub='Today'; }
-    if(type==='video-ended'){ icon='video'; label='Video call - 2:30'; sub='Today'; }
-    const row = document.createElement('div');
-    row.className='msg-row no-actions call-row'; row.dataset.messageId=id;
-    row.innerHTML=`<div class="bubble call-bubble ${missed?'missed':''}"><i data-lucide="${icon}" class="call-icon ${missed?'missed':''}"></i><div class="call-info"><span>${label}</span><span class="call-time">${sub}</span></div></div>`;
-    chatMessages.insertBefore(row, document.getElementById('typingIndicator'));
+ 
+  // ================= iOS 18 IN-APP NOTIFICATION - AUTO PREVIEW EVERY 4S =================
+  window.showIOSNotify = function({avatar='N', name='New message', message='You have a new message', time='now', onClick=null}={}){
+    if(!chatBackground) return;
+    const old = chatBackground.querySelector('.ios-notify');
+    if(old) old.remove();
+    const notify = document.createElement('div');
+    notify.className = 'ios-notify';
+    notify.innerHTML = `
+      <div class="ios-notify-avatar">${avatar}</div>
+      <div class="ios-notify-content">
+        <div class="ios-notify-name">${name}</div>
+        <div class="ios-notify-msg">${message}</div>
+      </div>
+      <div class="ios-notify-time">${time}</div>
+    `;
+    notify.addEventListener('click', ()=>{
+      notify.classList.add('hide');
+      setTimeout(()=> notify.remove(), 260);
+      if(typeof onClick === 'function') onClick();
+    });
+    chatBackground.appendChild(notify);
     if(window.lucide) lucide.createIcons();
-    chatMessages.scrollTo({top:chatMessages.scrollHeight, behavior:'smooth'});
+    setTimeout(()=>{
+      if(notify.parentNode){
+        notify.classList.add('hide');
+        setTimeout(()=> { if(notify.parentNode) notify.remove(); }, 280);
+      }
+    }, 3200);
+  };
+
+  // UI PREVIEW LOOP - pops every 4s so you can see it
+  const previewMessages = [
+    {avatar:'JD', name:'Joshua dayo', message:'Yo bro check that new code'},
+    {avatar:'ola', name:'ola', message:'Omo that border clean die'},
+    {avatar:'dev', name:'devsquad', message:'You don finish the sticker video?'},
+
+  ];
+  let previewIdx = 0;
+  function runPreviewLoop(){
+    const data = previewMessages[previewIdx % previewMessages.length];
+    window.showIOSNotify({
+      avatar: data.avatar,
+      name: data.name,
+      message: data.message,
+      time: 'now',
+      onClick: ()=> showToast('Opened '+data.name)
+    });
+    previewIdx++;
   }
+  // Start after 1s, then every 4s
+  setTimeout(()=>{
+    runPreviewLoop();
+    window._notifyPreviewInterval = setInterval(runPreviewLoop, 4000);
+  }, 1000);
+
+  // To stop preview later: clearInterval(window._notifyPreviewInterval)
+  window.stopNotifyPreview = function(){
+    clearInterval(window._notifyPreviewInterval);
+    const n = document.querySelector('.ios-notify');
+    if(n) n.remove();
+  };
 
   // ================= FOCUS MODE =================
   function enterFocusMode(row) {
@@ -130,7 +173,7 @@
     const mediaEl = row.querySelector('.sticker-bubble img,.sticker-bubble video,.image-bubble img,.video-bubble video');
     if(mediaEl && favText && favIcon){
       const src = (mediaEl.src || '').split('#')[0];
-      const exists = [...stickers,...memoryVideoStickers].some(s=> (typeof s==='string'? s : s.src).split('#')[0] === src);
+      const exists = [...stickers,...memoryVideoStickers].some(s=> (s.src||'').split('#')[0] === src);
       favText.textContent = exists? 'Remove from favorites' : 'Add to favorites';
       favIcon.setAttribute('data-lucide', exists? 'x' : 'star');
       if(window.lucide) lucide.createIcons();
@@ -139,7 +182,7 @@
     poppedClone.innerHTML = '';
     const clone = bubble.cloneNode(true); clone.classList.add('cloned-bubble');
     const badge = clone.querySelector('.msg-reaction-badge'); if(badge) badge.remove();
-    clone.querySelectorAll('img,video').forEach(el=>{ el.style.pointerEvents='none'; el.style.display='block'; });
+    clone.querySelectorAll('img,video').forEach(el=>{ el.style.pointerEvents='none'; el.style.display='block'; if(el.tagName==='VIDEO'){ el.muted=true; el.loop=true; el.autoplay=true; } });
     poppedClone.appendChild(clone);
     overlay.classList.add('active'); poppedContainer.classList.add('active','always-middle');
     if(row.querySelector('.sticker-bubble')) poppedContainer.classList.add('is-sticker'); else poppedContainer.classList.remove('is-sticker');
@@ -172,58 +215,50 @@
     if(hasR&&!hasS){ delEvery.style.display='none'; delMe.style.display='flex'; } else if(hasS&&!hasR){ if(selectedMessages.size>1){ delEvery.style.display='flex'; delMe.style.display='none'; } else { delEvery.style.display='flex'; delMe.style.display='flex'; } } else { delEvery.style.display='none'; delMe.style.display='flex'; }
   }
 
-  // ================= STICKER RENDER - FIXED FOR 6S REPLAY =================
-  // Helper to force play sticker videos
- 
-
+  // ================= STICKER VIDEO FIX - CORE =================
   function forcePlayStickerVideos(){
     document.querySelectorAll('.sticker-item video,.sticker-bubble video').forEach(v=>{
       if(v.paused){
-        v.muted=true;
-        v.playsInline=true;
+        v.muted = true;
+        v.playsInline = true;
+        v.setAttribute('muted','');
+        v.setAttribute('playsinline','');
         v.play().catch(()=>{});
       }
     });
   }
 
   function renderStickers(){
-    if(!stickerGrid) return;
+    if(!stickerGrid ||!stickerAddBox) return;
     stickerGrid.querySelectorAll('.sticker-item').forEach(e=>e.remove());
     const seen=new Set();
     const all=[...memoryVideoStickers,...stickers];
     all.forEach(item=>{
-      const src=typeof item==='string'? item : item.src;
-      const type=typeof item==='string'? 'image' : (item.type||'image');
-      const clean=src.split('#')[0];
+      const src = item.src;
+      if(!src) return;
+      const type = item.type || (src.includes('.mp4') || src.includes('.webm')? 'video' : 'image');
+      const clean = src.split('#')[0];
       if(seen.has(clean)) return; seen.add(clean);
       const div=document.createElement('div');
-      div.className='sticker-item'+(type==='video'? ' is-video':'');
+      div.className='sticker-item'+(type==='video'?' is-video':'');
       if(type==='video'){
-        div.innerHTML='';
         const video=document.createElement('video');
-        video.muted=true;
-        video.loop=true;
-        video.autoplay=true;
-        video.playsInline=true;
-        video.preload='auto';
-        video.setAttribute('playsinline','');
-        video.setAttribute('webkit-playsinline','');
-        video.setAttribute('muted','');
-        video.setAttribute('loop','');
-        video.setAttribute('autoplay','');
+        video.muted=true; video.loop=true; video.autoplay=true; video.playsInline=true; video.preload='auto';
+        video.setAttribute('playsinline',''); video.setAttribute('webkit-playsinline',''); video.setAttribute('muted',''); video.setAttribute('loop',''); video.setAttribute('autoplay','');
         video.src=src;
-        // important for phone: play when canplay
         video.addEventListener('canplay', ()=>{ video.play().catch(()=>{}); }, {once:true});
+        video.addEventListener('loadeddata', ()=>{ video.play().catch(()=>{}); }, {once:true});
         div.appendChild(video);
-        setTimeout(()=> video.play().catch(()=>{}), 80);
+        setTimeout(()=> video.play().catch(()=>{}), 100);
       } else {
-        div.innerHTML=`<img src="${src}">`;
+        const img=document.createElement('img');
+        img.src=src; div.appendChild(img);
       }
       div.onclick=()=> sendSticker(src,type);
-      stickerGrid.insertBefore(div, stickerAddBox.nextSibling);
+      stickerGrid.insertBefore(div, stickerAddBox);
     });
     if(window.lucide) lucide.createIcons();
-    setTimeout(forcePlayStickerVideos, 250);
+    setTimeout(forcePlayStickerVideos, 300);
   }
 
   function sendSticker(src,type='image'){
@@ -238,7 +273,7 @@
       video.setAttribute('playsinline',''); video.setAttribute('webkit-playsinline',''); video.setAttribute('muted',''); video.setAttribute('loop',''); video.setAttribute('autoplay','');
       bubble.prepend(video);
       video.addEventListener('canplay', ()=> video.play().catch(()=>{}), {once:true});
-      setTimeout(()=> video.play().catch(()=>{}), 120);
+      setTimeout(()=> video.play().catch(()=>{}), 150);
     } else {
       row.innerHTML=`<div class="select-circle"><i data-lucide="check"></i></div><div class="swipe-reply-icon"><i data-lucide="reply"></i></div><div class="bubble sticker-bubble"><img src="${src}"><span class="msg-meta sticker-meta right-meta"><span class="msg-time">${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</span><i data-lucide="check-check" class="tick-icon blue"></i></span><span class="msg-reaction-badge" id="reaction-${id}"></span></div>`;
     }
@@ -252,16 +287,22 @@
   function renderChatStickersSelect(){
     if(!stickerSelectGrid) return;
     stickerSelectGrid.innerHTML='';
-    const favSrcs=new Set([...stickers,...memoryVideoStickers].map(s=> (typeof s==='string'? s : s.src).split('#')[0]));
+    const favSrcs=new Set([...stickers,...memoryVideoStickers].map(s=> (s.src||'').split('#')[0]));
     document.querySelectorAll('.image-bubble img,.video-bubble video,.sticker-bubble img,.sticker-bubble video').forEach(el=>{
       const src=el.src||el.currentSrc; if(!src) return; const clean=src.split('#')[0]; if(favSrcs.has(clean)) return;
       const div=document.createElement('div'); div.className='sticker-item selectable selected';
-      if(el.tagName==='VIDEO') div.innerHTML=`<video src="${clean}" muted playsinline></video>`; else div.innerHTML=`<img src="${clean}">`;
+      if(el.tagName==='VIDEO'){
+        const v=document.createElement('video');
+        v.src=clean; v.muted=true; v.playsInline=true; v.setAttribute('muted',''); v.setAttribute('playsinline','');
+        div.appendChild(v);
+      } else {
+        const img=document.createElement('img'); img.src=clean; div.appendChild(img);
+      }
       div.dataset.src=clean; div.dataset.type=el.tagName==='VIDEO'? 'video':'image'; div.onclick=()=> div.classList.toggle('selected'); stickerSelectGrid.appendChild(div);
     });
   }
 
-  // ================= BIND ROW - FIXED VICE VERSA =================
+  // ================= BIND ROW =================
   function bindRow(row){
     if(row.classList.contains('no-actions')) return;
     let startX=0,startY=0;
@@ -281,7 +322,6 @@
       circle.addEventListener('click', e=>{ e.stopPropagation(); row.classList.toggle('selected'); const id=row.dataset.messageId; if(row.classList.contains('selected')) selectedMessages.add(id); else selectedMessages.delete(id); updateSelectedCount(); });
     }
 
-    // STICKER VIDEO in chat: loop replay 6s
     const stickerVideo=row.querySelector('.sticker-bubble video');
     if(stickerVideo &&!stickerVideo.dataset.boundSticker){
       stickerVideo.dataset.boundSticker="1";
@@ -292,62 +332,42 @@
       stickerVideo.addEventListener('click', ()=> openVideoFull(stickerVideo.src, ''));
     }
 
-    // NORMAL VIDEO in chat: do NOT loop, stay with play button
     const normalVideo=row.querySelector('.video-bubble video,.video-wrap video');
     if(normalVideo &&!normalVideo.dataset.boundNormal){
       normalVideo.dataset.boundNormal="1";
-      // keep normal behavior - no autoplay loop
       normalVideo.loop=false; normalVideo.autoplay=false;
       normalVideo.addEventListener('click', ()=> openVideoFull(normalVideo.src, row.querySelector('.img-caption-text')?.innerText||''));
       row.querySelector('.video-play-center')?.addEventListener('click', (e)=>{ e.stopPropagation(); openVideoFull(normalVideo.src, row.querySelector('.img-caption-text')?.innerText||''); });
     }
 
-    // VOICE PLAY FIX
-       // VOICE PLAY - FIXED PAUSE ICON FOR PHONE
     const voiceBubble=row.querySelector('.voice-bubble');
     if(voiceBubble &&!voiceBubble.dataset.voiceBound){
       voiceBubble.dataset.voiceBound="1";
       const btn = voiceBubble.querySelector('.voice-play-btn');
       const audio = voiceBubble.querySelector('audio');
       if(!btn ||!audio) return;
-
-      // create both icons once
       btn.innerHTML = `<i data-lucide="play" class="play-ic"></i><i data-lucide="pause" class="pause-ic" style="display:none"></i>`;
       if(window.lucide) lucide.createIcons();
-
       const showPlay = ()=>{
-        const playIc = btn.querySelector('.play-ic');
-        const pauseIc = btn.querySelector('.pause-ic');
-        if(playIc) playIc.style.display='block';
-        if(pauseIc) pauseIc.style.display='none';
-        voiceBubble.classList.remove('playing');
+        const playIc = btn.querySelector('.play-ic'); const pauseIc = btn.querySelector('.pause-ic');
+        if(playIc) playIc.style.display='block'; if(pauseIc) pauseIc.style.display='none'; voiceBubble.classList.remove('playing');
       };
       const showPause = ()=>{
-        const playIc = btn.querySelector('.play-ic');
-        const pauseIc = btn.querySelector('.pause-ic');
-        if(playIc) playIc.style.display='none';
-        if(pauseIc) pauseIc.style.display='block';
-        voiceBubble.classList.add('playing');
+        const playIc = btn.querySelector('.play-ic'); const pauseIc = btn.querySelector('.pause-ic');
+        if(playIc) playIc.style.display='none'; if(pauseIc) pauseIc.style.display='block'; voiceBubble.classList.add('playing');
       };
-
       btn.addEventListener('click', (e)=>{
         e.stopPropagation();
         if(audio.paused){
           document.querySelectorAll('.voice-bubble audio').forEach(a=>{ if(a!==audio){ a.pause(); a.currentTime=0; } });
           document.querySelectorAll('.voice-bubble').forEach(b=>{
             b.classList.remove('playing');
-            const bPlay = b.querySelector('.play-ic');
-            const bPause = b.querySelector('.pause-ic');
-            if(bPlay) bPlay.style.display='block';
-            if(bPause) bPause.style.display='none';
+            const bPlay = b.querySelector('.play-ic'); const bPause = b.querySelector('.pause-ic');
+            if(bPlay) bPlay.style.display='block'; if(bPause) bPause.style.display='none';
           });
           audio.play().then(showPause).catch(()=> showToast('Tap again'));
-        } else {
-          audio.pause();
-          showPlay();
-        }
+        } else { audio.pause(); showPlay(); }
       });
-
       audio.addEventListener('ended', showPlay);
       audio.addEventListener('pause', showPlay);
     }
@@ -355,21 +375,21 @@
 
   document.querySelectorAll('.msg-row').forEach(bindRow);
   new MutationObserver(muts=>{ muts.forEach(m=> m.addedNodes.forEach(n=>{ if(n.nodeType===1&&n.classList.contains('msg-row')) bindRow(n); })); }).observe(chatMessages,{childList:true});
-  // Extra observer to force sticker videos to keep playing when chat scrolls
-  setInterval(forcePlayStickerVideos, 2000);
+  setInterval(forcePlayStickerVideos, 2500);
 
-  // ================= VIDEO FULL - TAP ANYWHERE OUTSIDE = CLOSE =================
+  // ================= VIDEO FULL =================
   function openVideoFull(src,caption){
     if(!videoFullOverlay) return;
     videoFullPlayer.src=src; videoFullCaption.textContent=caption||''; videoFullOverlay.classList.add('show');
-    videoFullPlayer.loop=true; videoFullPlayer.play().catch(()=>{}); if(window.lucide) lucide.createIcons();
+    videoFullPlayer.loop=false; videoFullPlayer.muted=false; videoFullPlayer.play().catch(()=>{}); if(window.lucide) lucide.createIcons();
   }
   function closeVideoFull(){ videoFullOverlay.classList.remove('show'); if(videoFullPlayer){ videoFullPlayer.pause(); videoFullPlayer.src=''; } }
   videoFullClose?.addEventListener('click', (e)=>{ e.stopPropagation(); closeVideoFull(); });
   videoFullOverlay?.addEventListener('click', (e)=>{
     if(e.target===videoFullPlayer) return;
-    if(e.target.closest('video')) return;
+    if(e.target.closest('video') && e.target===videoFullPlayer) return;
     if(e.target.closest('.video-full-caption')) return;
+    if(e.target.closest('.preview-header')) return;
     closeVideoFull();
   });
 
@@ -387,7 +407,7 @@
         const imgEl=currentRow?.querySelector('.sticker-bubble img,.sticker-bubble video,.image-bubble img,.video-bubble video');
         if(!imgEl){ showToast('No media'); resetFocus(); return; }
         const src=(imgEl.src||'').split('#')[0]; const type=imgEl.tagName==='VIDEO'? 'video':'image';
-        let idx=stickers.findIndex(s=> (typeof s==='string'? s: s.src).split('#')[0]===src); let memIdx=memoryVideoStickers.findIndex(s=> s.src.split('#')[0]===src);
+        let idx=stickers.findIndex(s=> s.src.split('#')[0]===src); let memIdx=memoryVideoStickers.findIndex(s=> s.src.split('#')[0]===src);
         if(idx>=0){ stickers.splice(idx,1); localStorage.setItem('my_stickers', JSON.stringify(stickers)); showToast('Removed from favorites'); }
         else if(memIdx>=0){ memoryVideoStickers.splice(memIdx,1); showToast('Removed from favorites'); }
         else { if(type==='video') memoryVideoStickers.push({src:imgEl.src, type}); else { stickers.push({src, type}); localStorage.setItem('my_stickers', JSON.stringify(stickers)); } showToast('Added to favorites'); }
@@ -423,7 +443,7 @@
   function openPreview(src,type='image'){ if(!imagePreview) return; previewType=type; previewObjectUrl=src; if(type==='video'){ previewImage.style.display='none'; previewVideo.src=src; previewVideo.style.display='block'; } else { previewVideo.style.display='none'; previewVideo.pause(); previewImage.src=src; previewImage.style.display='block'; } imagePreview.classList.add('show'); if(window.lucide) lucide.createIcons(); }
   function handleFile(file){ if(!file) return; const url=URL.createObjectURL(file); openPreview(url, file.type.startsWith('video/')? 'video':'image'); }
   galleryInput?.addEventListener('change', e=> handleFile(e.target.files[0])); cameraInput?.addEventListener('change', e=> handleFile(e.target.files[0]));
-  function closePreview(){ imagePreview.classList.remove('show'); if(previewVideo){ previewVideo.pause(); previewVideo.src=''; } captionInput.value=''; }
+  function closePreview(){ imagePreview.classList.remove('show'); if(previewVideo){ previewVideo.pause(); previewVideo.src=''; } if(captionInput) captionInput.value=''; }
   previewClose?.addEventListener('click', closePreview); previewCancelText?.addEventListener('click', closePreview);
   imagePreview?.addEventListener('click', e=>{ if(e.target===imagePreview||e.target.classList.contains('preview-blur-bg')) closePreview(); });
   previewSendBtn?.addEventListener('click', ()=>{
@@ -431,7 +451,7 @@
     const id='msg_'+Date.now(); const row=document.createElement('div'); row.className='msg-row sender'; row.dataset.messageId=id;
     if(previewType==='video'){ row.innerHTML=`<div class="select-circle"><i data-lucide="check"></i></div><div class="swipe-reply-icon"><i data-lucide="reply"></i></div><div class="bubble video-bubble with-caption">${quotedHtml}<div class="video-wrap"><video src="${previewObjectUrl}"></video><button class="video-play-center"><i data-lucide="play"></i></button><span class="video-duration">00:10</span><span class="msg-meta over-image right-meta"><span class="msg-time">${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</span><i data-lucide="check-check" class="tick-icon blue"></i></span></div>${caption? `<div class="img-caption-wrap"><p class="img-caption-text">${caption}</p></div>`:''}<span class="msg-reaction-badge" id="reaction-${id}"></span></div>`; }
     else { if(caption){ row.innerHTML=`<div class="select-circle"><i data-lucide="check"></i></div><div class="swipe-reply-icon"><i data-lucide="reply"></i></div><div class="bubble image-bubble with-caption">${quotedHtml}<div class="img-wrap"><img src="${previewObjectUrl}"><span class="msg-meta over-image right-meta"><span class="msg-time">${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</span><i data-lucide="check-check" class="tick-icon blue"></i></span></div><div class="img-caption-wrap"><p class="img-caption-text">${caption}</p></div><span class="msg-reaction-badge" id="reaction-${id}"></span></div>`; } else { row.innerHTML=`<div class="select-circle"><i data-lucide="check"></i></div><div class="swipe-reply-icon"><i data-lucide="reply"></i></div><div class="bubble image-bubble">${quotedHtml}<div class="img-wrap"><img src="${previewObjectUrl}"><span class="msg-meta over-image right-meta"><span class="msg-time">${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</span><i data-lucide="check-check" class="tick-icon blue"></i></span></div><span class="msg-reaction-badge" id="reaction-${id}"></span></div>`; } }
-    chatMessages.insertBefore(row, document.getElementById('typingIndicator')); bindRow(row); if(window.lucide) lucide.createIcons(); closePreview(); galleryInput.value=''; cameraInput.value=''; if(window.clearReplyData) window.clearReplyData(); chatMessages.scrollTo({top:chatMessages.scrollHeight, behavior:'smooth'});
+    chatMessages.insertBefore(row, document.getElementById('typingIndicator')); bindRow(row); if(window.lucide) lucide.createIcons(); closePreview(); if(galleryInput) galleryInput.value=''; if(cameraInput) cameraInput.value=''; if(window.clearReplyData) window.clearReplyData(); chatMessages.scrollTo({top:chatMessages.scrollHeight, behavior:'smooth'});
   });
 
   // ================= STICKER PANEL TOGGLE =================
@@ -439,7 +459,7 @@
     stickerBtn.addEventListener('click', ()=>{
       const isShow=stickerPanel.classList.contains('show');
       if(isShow){ stickerPanel.classList.remove('show'); chatBackground.classList.remove('sticker-open'); }
-      else { renderStickers(); msgInput.blur(); stickerPanel.classList.add('show'); chatBackground.classList.add('sticker-open'); plusMenu?.classList.remove('show'); if(window.lucide) lucide.createIcons(); setTimeout(forcePlayStickerVideos, 400); }
+      else { renderStickers(); if(msgInput) msgInput.blur(); stickerPanel.classList.add('show'); chatBackground.classList.add('sticker-open'); plusMenu?.classList.remove('show'); if(window.lucide) lucide.createIcons(); setTimeout(forcePlayStickerVideos, 400); }
     });
   }
   stickerPanelClose?.addEventListener('click', ()=>{ stickerPanel.classList.remove('show'); chatBackground.classList.remove('sticker-open'); });
@@ -455,10 +475,10 @@
       const selected=chatStickerSelectMode.querySelectorAll('.sticker-item.selected');
       selected.forEach(el=>{
         const src=el.dataset.src.split('#')[0]; const type=el.dataset.type||'image';
-        const exists=[...stickers,...memoryVideoStickers].some(s=> (typeof s==='string'? s: s.src).split('#')[0]===src);
+        const exists=[...stickers,...memoryVideoStickers].some(s=> (s.src||'').split('#')[0]===src);
         if(!exists){ if(type==='video') memoryVideoStickers.push({src, type}); else { stickers.push({src, type}); localStorage.setItem('my_stickers', JSON.stringify(stickers)); } }
       });
-      renderStickers(); chatStickerSelectMode.classList.remove('show'); msgInput.blur(); stickerPanel.classList.add('show'); chatBackground.classList.add('sticker-open'); showToast('Sticker added'); setTimeout(forcePlayStickerVideos, 300);
+      renderStickers(); chatStickerSelectMode.classList.remove('show'); if(msgInput) msgInput.blur(); stickerPanel.classList.add('show'); chatBackground.classList.add('sticker-open'); showToast('Sticker added'); setTimeout(forcePlayStickerVideos, 300);
     });
     stickerSelectClose?.addEventListener('click', ()=> chatStickerSelectMode.classList.remove('show'));
     addStickerCancelX?.addEventListener('click', ()=> chatStickerSelectMode.classList.remove('show'));
@@ -498,9 +518,9 @@
 
   // ================= CREATE STICKER PAGE 6S =================
   function closeCreatePage(){
-    createPage.classList.remove('show'); createImage.src=''; createImage.style.display='none';
+    createPage.classList.remove('show'); if(createImage){ createImage.src=''; createImage.style.display='none'; }
     if(createVideo){ createVideo.src=''; createVideo.style.display='none'; createVideo.pause(); createVideo.ontimeupdate=null; }
-    createPlaceholder.style.display='flex'; if(textOverlay) textOverlay.textContent='';
+    if(createPlaceholder) createPlaceholder.style.display='flex'; if(textOverlay) textOverlay.textContent='';
     if(textOverlayWrapper){ textOverlayWrapper.style.display='none'; textOverlayWrapper.style.left='50%'; textOverlayWrapper.style.top='50%'; textOverlayWrapper.style.transform='translate(-50%,-50%)'; }
     if(videoTrimBar) videoTrimBar.style.display='none'; if(stickerFileInput) stickerFileInput.value='';
     cropScale=1; cropX=0; cropY=0; originalVideoFile=null;
@@ -545,15 +565,15 @@
     const url=URL.createObjectURL(file); cropScale=1; cropX=0; cropY=0;
     if(file.type.startsWith('video/')){
       createImage.style.display='none'; createVideo.src=url; createVideo.style.display='block'; createVideo.load(); createVideo.style.transform='translate(0px,0px) scale(1)'; videoTrimBar.style.display='flex';
-      trimStart.min=0; trimStart.value=0; trimEnd.value=6; trimLabel.textContent='0s - 6s (max 6s)';
+      trimStart.min=0; trimStart.value=0; trimEnd.value=6; if(trimLabel) trimLabel.textContent='0s - 6s (max 6s)';
       createVideo.addEventListener('loadedmetadata', ()=>{
         const dur=createVideo.duration; trimStart.max=dur; trimEnd.max=dur; trimEnd.value=Math.min(dur,6); trimStart.value=0;
-        trimLabel.textContent=`${parseFloat(trimStart.value).toFixed(1)}s - ${parseFloat(trimEnd.value).toFixed(1)}s`; createVideo.currentTime=0;
+        if(trimLabel) trimLabel.textContent=`${parseFloat(trimStart.value).toFixed(1)}s - ${parseFloat(trimEnd.value).toFixed(1)}s`; createVideo.currentTime=0;
         createVideo.ontimeupdate=()=>{ const s=parseFloat(trimStart.value)||0, en=parseFloat(trimEnd.value)||6; if(createVideo.currentTime>=en) createVideo.currentTime=s; };
       }, {once:true}); ensureFFmpegLoaded();
     } else {
       if(createVideo){ createVideo.style.display='none'; createVideo.pause(); createVideo.ontimeupdate=null; }
-      createImage.src=url; createImage.style.display='block'; videoTrimBar.style.display='none'; createImage.style.transform='translate(0px,0px) scale(1)';
+      createImage.src=url; createImage.style.display='block'; if(videoTrimBar) videoTrimBar.style.display='none'; createImage.style.transform='translate(0px,0px) scale(1)';
     }
     createPlaceholder.style.display='none';
     if(textOverlayWrapper){ textOverlayWrapper.style.display='flex'; textOverlayWrapper.style.left='50%'; textOverlayWrapper.style.top='55%'; textOverlayWrapper.style.transform='translate(-50%,-50%)'; }
@@ -561,16 +581,16 @@
   trimStart?.addEventListener('input', ()=>{
     let s=parseFloat(trimStart.value), en=parseFloat(trimEnd.value); if(s>=en-0.2) trimStart.value=(en-0.2).toFixed(1);
     if((parseFloat(trimEnd.value)-parseFloat(trimStart.value))>6) trimEnd.value=(parseFloat(trimStart.value)+6).toFixed(1);
-    trimLabel.textContent=`${parseFloat(trimStart.value).toFixed(1)}s - ${parseFloat(trimEnd.value).toFixed(1)}s`; if(createVideo) createVideo.currentTime=parseFloat(trimStart.value);
+    if(trimLabel) trimLabel.textContent=`${parseFloat(trimStart.value).toFixed(1)}s - ${parseFloat(trimEnd.value).toFixed(1)}s`; if(createVideo) createVideo.currentTime=parseFloat(trimStart.value);
   });
   trimEnd?.addEventListener('input', ()=>{
     let s=parseFloat(trimStart.value), en=parseFloat(trimEnd.value); if(en<=s+0.2) trimEnd.value=(s+0.2).toFixed(1);
     if((parseFloat(trimEnd.value)-parseFloat(trimStart.value))>6){ trimEnd.value=(parseFloat(trimStart.value)+6).toFixed(1); showToast('Max 6 seconds'); }
-    trimLabel.textContent=`${parseFloat(trimStart.value).toFixed(1)}s - ${parseFloat(trimEnd.value).toFixed(1)}s`;
+    if(trimLabel) trimLabel.textContent=`${parseFloat(trimStart.value).toFixed(1)}s - ${parseFloat(trimEnd.value).toFixed(1)}s`;
   });
-  addTextBtn?.addEventListener('click', ()=>{ if(textOverlayWrapper) textOverlayWrapper.style.display='flex'; textOverlay.focus(); });
+  addTextBtn?.addEventListener('click', ()=>{ if(textOverlayWrapper) textOverlayWrapper.style.display='flex'; if(textOverlay) textOverlay.focus(); });
   boldTextBtn?.addEventListener('click', ()=>{ if(!textOverlay) return; textOverlay.classList.toggle('bold'); textOverlay.focus(); });
-  zoomTextBtn?.addEventListener('click', ()=>{ textScale=textScale>=1.8?1:textScale+0.2; textOverlay.style.transform=`scale(${textScale})`; });
+  zoomTextBtn?.addEventListener('click', ()=>{ textScale=textScale>=1.8?1:textScale+0.2; if(textOverlay) textOverlay.style.transform=`scale(${textScale})`; });
   cropBtn?.addEventListener('click', ()=>{ isCropped=!isCropped; showToast(isCropped? 'Crop mode: drag & pinch image' : 'Crop reset'); if(!isCropped){ cropScale=1; cropX=0; cropY=0; updateCropTransform(); } });
 
   function bakeImageWithTextAndCrop(src, cb){
@@ -578,7 +598,7 @@
     const img=new Image(); img.src=src;
     img.onload=()=>{
       ctx.clearRect(0,0,512,512); ctx.save(); ctx.translate(256+cropX, 256+cropY); ctx.scale(cropScale,cropScale); ctx.drawImage(img,-256,-256,512,512); ctx.restore();
-      if(textOverlay.textContent.trim()&&textOverlayWrapper.style.display!=='none'){
+      if(textOverlay && textOverlay.textContent.trim()&&textOverlayWrapper.style.display!=='none'){
         const wRect=textOverlayWrapper.getBoundingClientRect(); const cRect=createCanvasEl.getBoundingClientRect();
         const relX=((wRect.left+wRect.width/2)-cRect.left)/cRect.width*512; const relY=((wRect.top+wRect.height/2)-cRect.top)/cRect.height*512;
         const fontSize=Math.round(22*textScale);
@@ -591,9 +611,9 @@
   }
 
   createAddBtn?.addEventListener('click', async ()=>{
-    const hasImage=createImage.src&&createImage.style.display!=='none'&&createImage.src!==''; const hasVideo=createVideo&&createVideo.src&&createVideo.style.display!=='none'&&createVideo.src!=='';
+    const hasImage=createImage && createImage.src&&createImage.style.display!=='none'&&createImage.src!==''; const hasVideo=createVideo&&createVideo.src&&createVideo.style.display!=='none'&&createVideo.src!=='';
     if(!hasImage&&!hasVideo){ showToast('Select image or video first'); return; }
-    createAddBtn.disabled=true; const orig=createAddBtn.textContent; createAddBtn.textContent='Cutting...';
+    if(createAddBtn){ createAddBtn.disabled=true; const orig=createAddBtn.textContent; createAddBtn.textContent='Cutting...'; }
     const cuttingLoader=document.getElementById('cuttingLoader'); if(cuttingLoader){ cuttingLoader.classList.add('show'); cuttingLoader.style.display='flex'; }
     try{
       if(hasVideo){
@@ -610,7 +630,7 @@
         return;
       }
     }catch(err){ console.error(err); showToast('Error adding'); }
-    finally{ createAddBtn.disabled=false; createAddBtn.textContent=orig; if(cuttingLoader){ cuttingLoader.classList.remove('show'); cuttingLoader.style.display='none'; } setTimeout(()=>{ stickerPanel.classList.add('show'); chatBackground.classList.add('sticker-open'); if(window.lucide) lucide.createIcons(); setTimeout(forcePlayStickerVideos, 300); },150); }
+    finally{ if(createAddBtn){ createAddBtn.disabled=false; createAddBtn.textContent='Add'; } if(cuttingLoader){ cuttingLoader.classList.remove('show'); cuttingLoader.style.display='none'; } setTimeout(()=>{ if(stickerPanel){ stickerPanel.classList.add('show'); chatBackground.classList.add('sticker-open'); } if(window.lucide) lucide.createIcons(); setTimeout(forcePlayStickerVideos, 400); },150); }
   });
 
   createClose?.addEventListener('click', closeCreatePage); createBack?.addEventListener('click', closeCreatePage); createCancelBtn?.addEventListener('click', closeCreatePage);
@@ -640,10 +660,10 @@
   }
   function stopVoice(send){ shouldSend=send; if(!mediaRecorder||mediaRecorder.state==='inactive'){ voiceOverlay?.classList.remove('show'); chatBackground.classList.remove('voice-open'); cleanupStream(); isRecording=false; return; } mediaRecorder.onstop=()=>{ if(shouldSend&&voiceSec>=1) sendVoiceMessage(); else { cleanupStream(); audioChunks=[]; } voiceOverlay?.classList.remove('show'); chatBackground.classList.remove('voice-open'); isRecording=false; voiceSec=0; }; mediaRecorder.stop(); }
   let micPressTimer=null;
-  micBtn?.addEventListener('pointerdown', (e)=>{ if(msgInput.value.trim().length>0) return; e.preventDefault(); if(isRecording) return; micPressTimer=setTimeout(()=>{ startVoice(); },200); });
+  micBtn?.addEventListener('pointerdown', (e)=>{ if(msgInput && msgInput.value.trim().length>0) return; e.preventDefault(); if(isRecording) return; micPressTimer=setTimeout(()=>{ startVoice(); },200); });
   micBtn?.addEventListener('pointerup', (e)=>{
     clearTimeout(micPressTimer); e.preventDefault();
-    if(msgInput.value.trim().length>0){
+    if(msgInput && msgInput.value.trim().length>0){
       const txt=msgInput.value.trim(); if(!txt) return; const replyData=window.getCurrentReplyData? window.getCurrentReplyData():null; let quotedHtml=''; if(replyData){ quotedHtml=`<div class="quoted-reply">${replyData.thumb? `<img class="quoted-thumb" src="${replyData.thumb}">`:''}<div class="quoted-content"><span class="quoted-name">${replyData.name}</span><span class="quoted-text">${replyData.text}</span></div></div>`; }
       const id='msg_'+Date.now(); const row=document.createElement('div'); row.className='msg-row sender'; row.dataset.messageId=id;
       row.innerHTML=`<div class="select-circle"><i data-lucide="check"></i></div><div class="swipe-reply-icon"><i data-lucide="reply"></i></div><div class="bubble sender-bubble">${quotedHtml}<p>${txt}</p><span class="msg-meta right-meta"><span class="msg-time">${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</span><i data-lucide="check-check" class="tick-icon blue"></i></span><span class="msg-reaction-badge" id="reaction-${id}"></span></div>`;
@@ -669,6 +689,6 @@
   setTimeout(()=>{ window.showTyping(); },200);
   renderChatStickersSelect();
   renderStickers();
-  setTimeout(forcePlayStickerVideos, 500);
+  setTimeout(forcePlayStickerVideos, 600);
   if(window.lucide) lucide.createIcons();
 })();
