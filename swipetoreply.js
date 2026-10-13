@@ -1,5 +1,8 @@
 // ===== SWIPE TO REPLY - FIXED + SELECT SCROLLABLE + QUOTED REPLY + THUMB =====
+// IMPORTANT: DO NOT MODIFY LOGIC - This file is working as requested
+// This handles swipe gesture to reply, exposes same function for hold pill
 (() => {
+  // Cache DOM elements
   const chatMessages = document.getElementById('chatMessages');
   const replyPreview = document.getElementById('replyPreview');
   const replyPreviewName = document.getElementById('replyPreviewName');
@@ -10,6 +13,7 @@
 
   if(!chatMessages) return;
 
+  // Swipe tracking variables
   let sX = 0, sY = 0, cX = 0, cY = 0;
   let curRow = null;
   let swiping = false;
@@ -17,7 +21,10 @@
   let vib = false;
   let currentReplyData = null;
 
+  // core function to set reply preview - used by swipe and hold pill
+  // This is the SAME function hold pill Reply button must call
   function setReply(row){
+    if(!row) return;
     if(row.classList.contains('no-actions')) return;
     // allow even if select-mode active but don't block scroll
     const bubble = row.querySelector('.bubble');
@@ -37,6 +44,7 @@
     replyPreviewName.textContent = isMe? 'You' : 'Joshua dayo';
     replyPreviewText.textContent = txt.slice(0,80);
 
+    // Show thumbnail if image/video exists
     if(replyPreviewThumb){
       if(img && img.src &&!img.src.includes('data:')){
         replyPreviewThumb.src = img.src;
@@ -53,6 +61,7 @@
       }
     }
 
+    // Save current reply data for sending message
     currentReplyData = {
       name: replyPreviewName.textContent,
       text: txt.slice(0,80),
@@ -68,6 +77,9 @@
     if(window.lucide) lucide.createIcons();
   }
 
+  // expose globally so hold pill reply can call same function as swipe
+  window.triggerSwipeReply = setReply;
+  window.setReplyRow = setReply; // alias for other modules
   window.getCurrentReplyData = () => currentReplyData;
   window.clearReplyData = () => {
     currentReplyData = null;
@@ -77,10 +89,12 @@
     if(scrollBtn) scrollBtn.style.bottom = '80px';
   };
 
+  // Close reply preview
   replyPreviewClose?.addEventListener('click', () => {
     window.clearReplyData();
   });
 
+  // Touch start - detect row
   chatMessages.addEventListener('touchstart', e => {
     const row = e.target.closest('.msg-row');
     if(!row) return;
@@ -100,6 +114,7 @@
     curRow.classList.remove('releasing');
   }, {passive:true});
 
+  // Touch move - handle swipe gesture
   chatMessages.addEventListener('touchmove', e => {
     if(!curRow) return;
     const touchX = e.touches[0].clientX;
@@ -142,6 +157,7 @@
     }
   }, {passive:false});
 
+  // Touch end - trigger reply if swiped enough
   chatMessages.addEventListener('touchend', () => {
     if(!curRow) { isHorizontal = null; return; }
     const bubble = curRow.querySelector('.bubble');
@@ -166,6 +182,7 @@
     curRow = null; cX = 0; cY = 0; swiping = false; isHorizontal = null;
   }, {passive:true});
 
+  // Touch cancel - reset
   chatMessages.addEventListener('touchcancel', () => {
     if(curRow){
       const bubble = curRow.querySelector('.bubble');
@@ -175,6 +192,7 @@
     curRow = null; isHorizontal = null;
   }, {passive:true});
 
+  // Double click to reply - desktop support
   chatMessages.addEventListener('dblclick', e => {
     const row = e.target.closest('.msg-row');
     if(!row) return;
@@ -183,6 +201,7 @@
     setReply(row);
   });
 
+  // Click on swipe icon - alternative trigger
   chatMessages.addEventListener('click', e => {
     const replyIcon = e.target.closest('.swipe-reply-icon');
     if(!replyIcon) return;

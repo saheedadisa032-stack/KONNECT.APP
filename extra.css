@@ -1,4 +1,5 @@
 /* ===== PLUS MENU: Bounce when opening ===== */
+/* This menu appears when tapping + in input bar - DO NOT TOUCH per spec, working */
 .plus-pill-menu{
   position: absolute;
   bottom: 74px;
@@ -67,8 +68,6 @@
 .select-circle i,.select-circle svg{ width:14px; height:14px; display:none; }
 .msg-row.selected .select-circle{ background:#0a84ff; border-color:#0a84ff; }
 .msg-row.selected .select-circle i{ display:block; color:#fff; }
-.selected-count{ display:none; color:#fff; font-size:16px; font-weight:700; }
-.selected-count.show{ display:block; }
 
 /* ===== FIX: SELECT MODE STILL SCROLLABLE - NO BLUR HERE ===== */
 .chat-background.select-mode .chat-messages,
@@ -89,7 +88,7 @@
   filter:none !important;
 }
 
-/* ===== SELECT HEADER RESPONSIVE FIX ===== */
+/* ===== SELECT HEADER - ONLY X + COUNT IN ONE PILL (DELETE REMOVED) ===== */
 .profile-headerchatBackground.select-mode-active{
   display:flex !important;
   justify-content:flex-start !important;
@@ -106,13 +105,42 @@
 }
 .profile-headerchatBackground.select-mode-active .calls.hide-calls{ display:flex !important; }
 .calls.hide-calls .phone-call, .calls.hide-calls .video-call{ display:none !important; }
-.header-cancel-btn{ display:none; width:36px; height:36px; border-radius:50%; background:rgba(255,255,255,0.12); border:none; color:#fff; place-items:center; cursor:pointer; }
-.header-cancel-btn.show{ display:grid !important; }
-.header-delete-btn{ display:none; width:36px; height:36px; border-radius:50%; background:rgba(255,59,48,0.18); border:none; color:#ff3b30; place-items:center; cursor:pointer; }
-.header-delete-btn.show{ display:grid !important; }
-.selected-count.show{ display:inline-flex !important; align-items:center; margin:0 8px 0 4px; }
 
-/* ===== STICKER PANEL - DESKTOP UNDER INPUT ONLY MOBILE PUSH ===== */
+/* New pill style - X + count together */
+.selected-pill{
+  display:none;
+  align-items:center;
+  gap:8px;
+  background: rgba(255,255,255,0.12);
+  border:1px solid rgba(255,255,255,0.18);
+  border-radius:100px;
+  padding:4px 10px 4px 4px;
+  backdrop-filter: blur(10px);
+}
+.selected-pill.show{ display:flex !important; }
+.header-cancel-btn{ 
+  display:flex; 
+  width:30px; height:30px; 
+  border-radius:50%; 
+  background:rgba(255,255,255,0.12); 
+  border:1px solid rgba(255,255,255,0.18); 
+  color:#fff; 
+  place-items:center; 
+  cursor:pointer; 
+}
+.header-cancel-btn i{ width:18px; height:18px; }
+.selected-count{ 
+  display:block; 
+  color:#fff; 
+  font-size:13px; 
+  font-weight:700; 
+  min-width:14px; 
+  text-align:center;
+}
+/* DELETE BTN REMOVED per spec */
+.header-delete-btn{ display:none !important; }
+
+/* ===== STICKER PANEL - VIDEO MUST AUTOPLAY MUTED LOOP ===== */
 .sticker-border-panel{
   position:absolute; bottom:0; left:0; right:0; width:100%; height:320px; max-height:48vh;
   background:#121212; border-top:1px solid rgba(255,255,255,0.1); border-radius:20px 20px 0 0; z-index:34;
@@ -128,10 +156,13 @@
 .sticker-panel-title{ color:#fff; font-size:14px; font-weight:700; margin-top:8px; }
 .sticker-panel-close{ width:28px; height:28px; border-radius:50%; background:rgba(255,255,255,0.12); border:none; color:#fff; display:grid; place-items:center; cursor:pointer; margin-left:auto; margin-top:4px; }
 .sticker-grid{ flex:1; display:grid; grid-template-columns:repeat(auto-fill, minmax(70px,1fr)); gap:10px; padding:18px 14px 14px 14px; overflow-y:auto; align-content:start; min-height:0; justify-items:center; margin-top:2px; }
-.sticker-grid::-webkit-scrollbar{ width:4px; } .sticker-grid::-webkit-scrollbar-thumb{ background:#2a2a2e; border-radius:10px; }
-.sticker-item{ width:70px; height:70px; background:rgba(255,255,255,0.06); border-radius:14px; display:grid; place-items:center; cursor:pointer; border:1px solid rgba(255,255,255,0.06); transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1); flex-shrink:0; }
+.sticker-grid::-webkit-scrollbar{ width:4px; } 
+.sticker-grid::-webkit-scrollbar-thumb{ background:#2a2a2e; border-radius:10px; }
+.sticker-item{ width:70px; height:70px; background:rgba(255,255,255,0.06); border-radius:14px; display:grid; place-items:center; cursor:pointer; border:1px solid rgba(255,255,255,0.06); transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1); flex-shrink:0; overflow:hidden; }
 .sticker-item:hover{ transform:scale(1.06); }
+/* Video sticker must play inside panel - autoplay muted loop */
 .sticker-item img, .sticker-item video{ width:56px; height:56px; object-fit:contain; display:block; border-radius:10px; }
+.sticker-item video{ width:100%; height:100%; object-fit:cover; }
 .sticker-add-box{ width:70px; height:70px; border:2px dashed rgba(255,255,255,0.18); border-radius:14px; background:transparent; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; cursor:pointer; color:#888; font-size:10px; font-weight:600; flex-shrink:0; }
 .dashed-plus{ width:28px; height:28px; border-radius:50%; background:rgba(255,255,255,0.08); display:grid; place-items:center; }
 @media (max-width:768px){
@@ -143,7 +174,7 @@
   .sticker-border-panel.show ~ .chat-input-bar{ transform:translateY(0) !important; }
 }
 
-/* ===== CHAT STICKER SELECT MODE - SCROLL NOT PUSH BUTTON ===== */
+/* ===== CHAT STICKER SELECT MODE - WITH X BESIDE ADD BUTTON ===== */
 .chat-sticker-select-mode{
   position:absolute; inset:0; top:0; background:rgba(0,0,0,0.65); backdrop-filter:blur(16px);
   z-index:50; display:none; flex-direction:column; overflow:hidden;
@@ -156,7 +187,22 @@
 .sticker-select-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(90px,1fr)); gap:12px; width:100%; max-width:360px; align-content:start; justify-items:center; overflow-y:auto; flex:1; min-height:0; max-height:62vh; padding-bottom:10px; }
 .sticker-select-grid .sticker-item{ width:90px; height:90px; }
 .sticker-item.selectable.selected{ outline:2px solid #0a84ff; background:rgba(10,132,255,0.18); }
-.add-sticker-confirm-btn{ padding:12px 28px; border-radius:30px; background:#0a84ff; color:#fff; border:none; font-weight:700; font-size:15px; cursor:pointer; width:100%; max-width:320px; height:44px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+/* X icon beside Add sticker border/button */
+.add-sticker-action-row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  width:100%;
+  max-width:320px;
+  flex-shrink:0;
+}
+.add-sticker-confirm-btn{ flex:1; padding:12px 28px; border-radius:30px; background:#0a84ff; color:#fff; border:none; font-weight:700; font-size:15px; cursor:pointer; height:44px; display:flex; align-items:center; justify-content:center; }
+.add-sticker-cancel-x{
+  width:44px; height:44px; border-radius:50%; border:none;
+  background: rgba(255,255,255,0.12); color:#fff;
+  display:grid; place-items:center; cursor:pointer; flex-shrink:0;
+}
+.add-sticker-cancel-x i{ width:20px; height:20px; }
 
 /* ===== FILE PREVIEW - CANCEL X ===== */
 .image-preview-overlay{ position:absolute; inset:0; z-index:70; display:none; flex-direction:column; background:#0e0e0e; }
@@ -176,8 +222,11 @@
 .video-full-overlay.show{ display:flex; }
 #videoFullPlayer{ max-width:90%; max-height:70vh; border-radius:16px; }
 .video-full-caption{ margin-top:12px; color:#fff; font-size:14px; text-align:center; max-width:80%; word-break:break-word; }
+/* X icon for video full overlay to close - always visible top left */
+.video-full-overlay .preview-header{ background:transparent; border:none; position:absolute; top:0; left:0; right:0; z-index:5; }
+.video-full-overlay .preview-close{ background: rgba(0,0,0,0.55); backdrop-filter: blur(8px); border:1px solid rgba(255,255,255,0.15); }
 
-/* ===== CREATE STICKER PAGE - BUTTONS JUST UNDER CANVAS - CANVAS LINEUP FIXED ===== */
+/* ===== CREATE STICKER PAGE - IPHONE 17 STYLE CROP ===== */
 .create-sticker-page{
   position:absolute; inset:0; background:#0e0e0e; z-index:75; display:none; flex-direction:column; align-items:center; justify-content:flex-start;
   height:100%; max-height:100dvh; transform:translateY(100%); transition: transform 0.45s cubic-bezier(0.34,1.56,0.64,1); overflow:hidden;
@@ -189,16 +238,30 @@
 .create-sticker-header .icon-btn.close-x{ background:rgba(255,255,255,0.18); }
 .create-sticker-body{ flex:1; width:100%; max-width:480px; display:flex; flex-direction:column; align-items:center; padding:14px; gap:10px; overflow-y:auto; min-height:0; justify-content:flex-start; }
 .create-canvas-wrap{ width:100%; max-width:360px; display:flex; flex-direction:column; align-items:center; gap:10px; margin:0 auto; justify-content:center; }
-.create-canvas{ width:100%; max-width:320px; aspect-ratio:1; background:#18181a; border:1px solid rgba(255,255,255,0.08); border-radius:18px; display:grid; place-items:center; position:relative; overflow:hidden; flex-shrink:0; margin:0 auto; }
+/* iPhone 17 style crop - direct pinch/drag on image, not old crop box */
+.create-canvas{ 
+  width:100%; max-width:320px; aspect-ratio:1; background:#18181a; 
+  border:1px solid rgba(255,255,255,0.08); border-radius:18px; 
+  display:grid; place-items:center; position:relative; overflow:hidden; 
+  flex-shrink:0; margin:0 auto; 
+  touch-action:none; /* enable pinch zoom */
+}
+.create-canvas.iphone-crop-container{ touch-action:none; }
 .create-placeholder{ display:flex; flex-direction:column; align-items:center; gap:10px; color:#777; cursor:pointer; text-align:center; padding:20px; width:100%; height:100%; justify-content:center; }
-#createStickerImage, #createStickerVideo{ max-width:92%; max-height:92%; object-fit:contain; border-radius:12px; display:block; margin:auto; }
+#createStickerImage, #createStickerVideo{ 
+  max-width:100%; max-height:100%; 
+  object-fit:contain; border-radius:12px; display:block; margin:auto; 
+  will-change: transform; transform-origin: center center;
+  transition: transform 0.05s linear;
+}
 #stickerCanvas{ width:100%; height:100%; }
 .text-overlay-wrapper{ position:absolute; left:50%; top:55%; transform:translate(-50%,-50%); display:flex; align-items:center; gap:6px; max-width:85%; justify-content:center; z-index:2; }
 .text-overlay{ color:#fff; font-weight:800; font-size:22px; text-shadow:0 2px 10px rgba(0,0,0,0.9); cursor:move; outline:none; min-width:50px; text-align:center; word-break:break-word; max-width:200px; background:transparent; }
 .text-overlay.bold{ font-weight:900 !important; -webkit-text-stroke:1px #000; text-shadow:0 0 2px #000, 0 2px 10px rgba(0,0,0,0.9); }
 .resize-handle{ width:14px; height:14px; background:#0a84ff; border:2px solid #fff; border-radius:50%; cursor:nwse-resize; flex-shrink:0; }
 .video-trim-bar{ width:100%; max-width:320px; display:flex; flex-direction:column; gap:6px; padding:8px 10px; background:#1a1a1a; border-radius:12px; flex-shrink:0; }
-.trim-inputs{ display:flex; gap:8px; } .trim-inputs input{ flex:1; accent-color:#0a84ff; }
+.trim-inputs{ display:flex; gap:8px; } 
+.trim-inputs input{ flex:1; accent-color:#0a84ff; }
 #trimLabel{ color:#fff; font-size:12px; font-weight:600; text-align:center; }
 .create-toolbar{ width:100%; max-width:360px; display:flex; gap:8px; flex-shrink:0; justify-content:center; overflow-x:auto; padding:2px 0; }
 .create-toolbar button{ padding:9px 14px; border-radius:20px; background:#1f1f1f; border:1px solid rgba(255,255,255,0.12); color:#fff; display:flex; align-items:center; gap:6px; cursor:pointer; font-weight:700; font-size:13px; white-space:nowrap; }
@@ -213,7 +276,9 @@
 .typing-bubble{ background:#202c33 !important; border:1px solid rgba(255,255,255,0.06) !important; border-radius:18px 18px 18px 6px !important; padding:14px 18px !important; min-width:60px !important; max-width:70px !important; height:38px !important; display:flex !important; align-items:center !important; justify-content:center !important; }
 .typing-dots{ display:flex; gap:4px; align-items:center; justify-content:center; }
 .typing-dots span{ width:7px; height:7px; background:#8696a0; border-radius:50%; display:block; animation: typingBounce 1.4s infinite ease-in-out both; }
-.typing-dots span:nth-child(1){ animation-delay: -0.32s; } .typing-dots span:nth-child(2){ animation-delay: -0.16s; } .typing-dots span:nth-child(3){ animation-delay: 0s; }
+.typing-dots span:nth-child(1){ animation-delay: -0.32s; } 
+.typing-dots span:nth-child(2){ animation-delay: -0.16s; } 
+.typing-dots span:nth-child(3){ animation-delay: 0s; }
 @keyframes typingBounce{ 0%, 80%, 100%{ transform:scale(0.6); opacity:0.5; } 40%{ transform:scale(1); opacity:1; } }
 .group-typing-row{ display:flex !important; align-items:center !important; gap:8px !important; }
 .group-typing-avatars{ display:flex; align-items:center; }
@@ -221,7 +286,7 @@
 .gt-avatar:first-child{ margin-left:0; }
 .typing-bubble.group{ background:#f0f0f0 !important; border-radius:18px !important; }
 
-/* ===== VOICE RECORDING - CUSTOM TIMER ===== */
+/* ===== VOICE RECORDING ===== */
 .voice-recording-overlay{ position:absolute; left:0; right:0; bottom:0; z-index:90 !important; display:none; background:#121212; border-top:1px solid rgba(255,255,255,0.12); height:72px; align-items:center; justify-content:center; padding:0 12px; }
 .voice-recording-overlay.show{ display:flex !important; animation: voiceUp 0.3s cubic-bezier(0.34,1.56,0.64,1) forwards; }
 @keyframes voiceUp{ from{ transform:translateY(100%); opacity:0; } to{ transform:translateY(0); opacity:1; } }
@@ -232,7 +297,9 @@
 .voice-timer{ color:#fff; font-size:14px; font-weight:700; background:rgba(255,255,255,0.1); padding:6px 14px; border-radius:20px; min-width:54px; text-align:center; border:1px solid rgba(255,255,255,0.12); }
 .voice-controls{ display:flex; gap:8px; align-items:center; }
 .voice-cancel,.voice-stop,.voice-send{ width:40px; height:40px; border-radius:50%; border:none; display:grid; place-items:center; cursor:pointer; flex-shrink:0; }
-.voice-cancel{ background:rgba(255,255,255,0.12); color:#fff; } .voice-stop{ background:#ff3b30; color:#fff; } .voice-send{ background:#0a84ff; color:#fff; }
+.voice-cancel{ background:rgba(255,255,255,0.12); color:#fff; } 
+.voice-stop{ background:#ff3b30; color:#fff; } 
+.voice-send{ background:#0a84ff; color:#fff; }
 .chat-background.voice-open .chat-input-bar{ display:none !important; }
 .voice-bubble{ display:flex; align-items:center; gap:10px; min-width:220px; max-width:78%; padding:10px 12px 20px 12px !important; background: #1a5fb4 !important; border-radius:18px 18px 4px 18px !important; position:relative; }
 .voice-bubble.receiver-bubble{ border-radius:18px 18px 18px 4px !important; background:#2a2a2e !important; }
@@ -242,7 +309,7 @@
 .voice-duration{ font-size:12.5px; font-weight:600; color:#fff; min-width:36px; }
 
 /* ===== HOLD PILL - CENTER OF CHAT-BACKGROUND NOT VIEWPORT ===== */
-.chat-background{ position:fixed; } /* ensure absolute child centers in it */
+.chat-background{ position:fixed; }
 .chat-background.focus-mode .profile-headerchatBackground,
 .chat-background.focus-mode .chat-messages,
 .chat-background.focus-mode .chat-input-bar,
@@ -254,7 +321,6 @@
   user-select:none !important;
   transition: filter 0.25s ease;
 }
-/* NO BLUR WHEN SELECT MODE - OVERRIDE FOCUS */
 .chat-background.select-mode .profile-headerchatBackground,
 .chat-background.select-mode-active .profile-headerchatBackground,
 .chat-background.select-mode .chat-messages,
@@ -269,7 +335,7 @@
   background:rgba(0,0,0,0.52); backdrop-filter:blur(4px); z-index:58; display:block;
 }
 .popped-message-container.always-middle{
-  position:absolute !important; /* CENTER IN CHAT-BACKGROUND */
+  position:absolute !important;
   left:50% !important; top:50% !important;
   transform:translate(-50%,-50%) scale(0.9) !important;
   z-index:60; display:none; flex-direction:column; align-items:center; gap:14px; opacity:0; width:auto; max-width:88%; pointer-events:none; transition: all 0.35s cubic-bezier(0.34,1.56,0.64,1);

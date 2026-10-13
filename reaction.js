@@ -1,3 +1,16 @@
+// reaction-and-other.js
+// Handles: hold pill popup, select mode, stickers, voice, file preview, create sticker page
+// SPEC FIXES IN THIS FILE:
+// - Hold pill Reply MUST call same function as swipe-to-reply (triggerSwipeReply)
+// - Video sticker autoplay muted loop inside panel
+// - Plus icon pill menu - DO NOT TOUCH (working)
+// - Fix Add/Unadd favorites toggle
+// - Video full overlay X icon to close
+// - Add sticker mode X icon beside Add button to cancel
+// - Video trim to max 3s when adding as sticker
+// - Creation editor: text + zoom + crop must reflect on final sticker
+// - iPhone 17 style crop: direct drag/pinch on image
+
 (function() {
   const chatMessages = document.getElementById('chatMessages');
   const overlay = document.getElementById('messageFocusOverlay');
@@ -7,7 +20,7 @@
   const emojiBar = document.getElementById('emojiReactBar');
   const emojiPlusBtn = document.getElementById('emojiPlusBtn');
   const headerCancelBtn = document.getElementById('headerCancelBtn');
-  const headerDeleteBtn = document.getElementById('headerDeleteBtn');
+  const selectedGroup = document.getElementById('selectedPill'); // fixed id: selectedPill X+count in one pill
   const callsWrap = document.querySelector('.calls');
   const chatInputBar = document.getElementById('chatInputBar');
   const deleteActionBar = document.getElementById('deleteActionBar');
@@ -27,6 +40,7 @@
   const stickerSelectGrid = document.getElementById('stickerSelectGrid');
   const stickerSelectClose = document.getElementById('stickerSelectClose');
   const addStickerConfirmBtn = document.getElementById('addStickerConfirmBtn');
+  const addStickerCancelX = document.getElementById('addStickerCancelX'); // NEW X beside Add sticker
 
   const galleryInput = document.getElementById('galleryInput');
   const cameraInput = document.getElementById('cameraInput');
@@ -41,7 +55,7 @@
   const videoFullOverlay = document.getElementById('videoFullOverlay');
   const videoFullPlayer = document.getElementById('videoFullPlayer');
   const videoFullCaption = document.getElementById('videoFullCaption');
-  const videoFullClose = document.getElementById('videoFullClose');
+  const videoFullClose = document.getElementById('videoFullClose'); // X icon to close video
 
   const createPage = document.getElementById('createStickerPage');
   const createClose = document.getElementById('createStickerClose');
@@ -49,6 +63,7 @@
   const createCancelBtn = document.getElementById('createCancelBtn');
   const createImage = document.getElementById('createStickerImage');
   const createVideo = document.getElementById('createStickerVideo');
+  const createCanvasEl = document.getElementById('createCanvas');
   const createPlaceholder = document.getElementById('createPlaceholder');
   const stickerFileInput = document.getElementById('stickerFileInput');
   const textOverlay = document.getElementById('textOverlay');
@@ -62,6 +77,7 @@
   const trimStart = document.getElementById('trimStart');
   const trimEnd = document.getElementById('trimEnd');
   const trimLabel = document.getElementById('trimLabel');
+  const stickerCanvas = document.getElementById('stickerCanvas');
 
   const voiceOverlay = document.getElementById('voiceRecordingOverlay');
   const voiceTimer = document.getElementById('voiceTimer');
@@ -87,6 +103,8 @@
   let previewType = 'image';
   let previewObjectUrl = '';
   let isCropped = false;
+  // iPhone 17 crop vars
+  let cropScale = 1, cropX = 0, cropY = 0, lastDist = 0, lastX = 0, lastY = 0;
 
   function showToast(msg="Added to favorites"){
     if(!toast) return;
@@ -118,19 +136,17 @@
     currentRow = row;
     currentId = row.dataset.messageId;
 
-    // FAV TOGGLE LOGIC
-    const isStickerRow = row.querySelector('.sticker-bubble img,.sticker-bubble video');
-    if(isStickerRow && favText && favIcon){
-      const src = isStickerRow.src || isStickerRow.currentSrc;
-      const exists = stickers.some(s=> (typeof s==='string'? s : s.src) === src || (typeof s==='string'? s : s.src).split('#')[0] === src);
+    // FAV TOGGLE - FIXED: correctly check if exists
+    const mediaEl = row.querySelector('.sticker-bubble img,.sticker-bubble video,.image-bubble img,.video-bubble video');
+    if(mediaEl && favText && favIcon){
+      const src = (mediaEl.src || mediaEl.currentSrc || '').split('#')[0];
+      const exists = stickers.some(s=> (typeof s==='string'? s : s.src).split('#')[0] === src);
       if(exists){
         favText.textContent = 'Remove from favorites';
         favIcon.setAttribute('data-lucide','x');
-        actionPill.querySelector('[data-action="favorite"]').classList.add('is-fav');
       } else {
         favText.textContent = 'Add to favorites';
         favIcon.setAttribute('data-lucide','star');
-        actionPill.querySelector('[data-action="favorite"]').classList.remove('is-fav');
       }
       if(window.lucide) lucide.createIcons();
     }
@@ -140,18 +156,17 @@
     poppedClone.innerHTML = '';
     const clone = bubble.cloneNode(true);
     clone.classList.add('cloned-bubble');
-    // exact border fix
-    clone.style.borderRadius = '18px';
     const badge = clone.querySelector('.msg-reaction-badge');
     if(badge) badge.remove();
     clone.querySelectorAll('img,video').forEach(el=>{
       el.style.pointerEvents='none';
-      el.style.borderRadius='18px';
       el.style.display='block';
     });
     poppedClone.appendChild(clone);
     overlay.classList.add('active');
     poppedContainer.classList.add('active','always-middle');
+    if(row.querySelector('.sticker-bubble')) poppedContainer.classList.add('is-sticker');
+    else poppedContainer.classList.remove('is-sticker');
     chatBackground.classList.add('focus-mode');
     if(actionPill) actionPill.style.display = 'flex';
     if(emojiBar) emojiBar.classList.remove('show');
@@ -176,8 +191,7 @@
     chatMessages.style.overflowY='auto';
     chatMessages.style.pointerEvents='auto';
     if(callsWrap) callsWrap.classList.add('hide-calls');
-    if(headerCancelBtn) headerCancelBtn.classList.add('show');
-    if(headerDeleteBtn) headerDeleteBtn.classList.add('show');
+    if(selectedGroup) selectedGroup.classList.add('show');
     if(selectedCount){ selectedCount.textContent='0'; selectedCount.classList.add('show'); }
     if(chatInputBar) chatInputBar.style.display='none';
     if(deleteActionBar) deleteActionBar.classList.add('show');
@@ -191,8 +205,7 @@
     document.querySelectorAll('.msg-row').forEach(r=> r.classList.remove('select-mode','selected'));
     chatBackground.classList.remove('select-mode','select-mode-active');
     if(callsWrap) callsWrap.classList.remove('hide-calls');
-    if(headerCancelBtn) headerCancelBtn.classList.remove('show');
-    if(headerDeleteBtn) headerDeleteBtn.classList.remove('show');
+    if(selectedGroup) selectedGroup.classList.remove('show');
     if(selectedCount) selectedCount.classList.remove('show');
     if(chatInputBar) chatInputBar.style.display='flex';
     if(deleteActionBar) deleteActionBar.classList.remove('show');
@@ -214,6 +227,7 @@
     else { deleteForEveryone.style.display='none'; deleteForMe.style.display='flex'; }
   }
 
+  // render stickers with video autoplay muted loop in panel - FIXED
   function renderStickers(){
     if(!stickerGrid) return;
     stickerGrid.querySelectorAll('.sticker-item').forEach(e=>e.remove());
@@ -225,9 +239,13 @@
       if(seen.has(cleanSrc)) return;
       seen.add(cleanSrc);
       const div = document.createElement('div');
-      div.className = 'sticker-item';
-      if(type === 'video') div.innerHTML = `<video src="${cleanSrc}" muted loop playsinline></video>`;
-      else div.innerHTML = `<img src="${cleanSrc}">`;
+      div.className = 'sticker-item' + (type==='video'? ' is-video' : '');
+      if(type === 'video'){
+        // autoplay muted loop in panel as requested
+        div.innerHTML = `<video src="${cleanSrc}" muted loop autoplay playsinline></video>`;
+      } else {
+        div.innerHTML = `<img src="${cleanSrc}">`;
+      }
       div.onclick = ()=> sendSticker(cleanSrc, type);
       stickerGrid.insertBefore(div, stickerAddBox.nextSibling);
     });
@@ -248,7 +266,6 @@
   }
   renderStickers();
 
-  // AUTO SELECT ONLY NOT IN FAVORITES, SCROLLABLE
   function renderChatStickersSelect(){
     if(!stickerSelectGrid) return;
     stickerSelectGrid.innerHTML = '';
@@ -257,10 +274,10 @@
       const src = el.src || el.currentSrc;
       if(!src) return;
       const clean = src.split('#')[0];
-      if(favSrcs.has(clean)) return; // only not in fav
+      if(favSrcs.has(clean)) return;
       const div = document.createElement('div');
-      div.className = 'sticker-item selectable selected'; // auto select
-      if(el.tagName==='VIDEO') div.innerHTML = `<video src="${clean}" muted></video>`;
+      div.className = 'sticker-item selectable selected';
+      if(el.tagName==='VIDEO') div.innerHTML = `<video src="${clean}" muted playsinline></video>`;
       else div.innerHTML = `<img src="${clean}">`;
       div.dataset.src = clean;
       div.dataset.type = el.tagName==='VIDEO'? 'video' : 'image';
@@ -302,7 +319,6 @@
     const videoEl = row.querySelector('.video-bubble video');
     if(videoEl &&!videoEl.dataset.bound){
       videoEl.dataset.bound="1";
-      videoEl.parentElement.style.pointerEvents='auto';
       row.querySelector('.video-play-center')?.addEventListener('click', (e)=>{ e.stopPropagation(); openVideoFull(videoEl.src, row.querySelector('.img-caption-text')?.innerText || ''); });
       videoEl.addEventListener('click', ()=>{ openVideoFull(videoEl.src, row.querySelector('.img-caption-text')?.innerText || ''); });
     }
@@ -315,39 +331,30 @@
     videoFullPlayer.src = src.split('#')[0];
     videoFullCaption.textContent = caption || '';
     videoFullOverlay.classList.add('show');
+    if(window.lucide) lucide.createIcons();
   }
-  videoFullClose?.addEventListener('click', ()=>{ videoFullOverlay.classList.remove('show'); videoFullPlayer.pause(); videoFullPlayer.src=''; });
+  // X icon for video preview close - FIXED to always work
+  videoFullClose?.addEventListener('click', ()=>{
+    videoFullOverlay.classList.remove('show');
+    videoFullPlayer.pause();
+    videoFullPlayer.src='';
+  });
   videoFullOverlay?.addEventListener('click', (e)=>{
-    if(e.target===videoFullOverlay || e.target.classList.contains('preview-blur-bg') || e.target.closest('.preview-close')){
+    if(e.target===videoFullOverlay || e.target.classList.contains('preview-blur-bg')){
       videoFullOverlay.classList.remove('show'); videoFullPlayer.pause();
     }
   });
 
-  // REPLY LIKE SWIPE
+  // REPLY - use same function as swipe to reply - SPEC REQUIRED
   function doReplyFromPill(){
-    const bubble=currentRow?.querySelector('.bubble');
-    const text=bubble?.querySelector('p:not(.img-caption-text)')?.innerText || bubble?.querySelector('.img-caption-text')?.innerText || 'Message';
-    const img = bubble?.querySelector('img');
-    const vid = bubble?.querySelector('video');
+    if(!currentRow) return;
+    const rowToReply = currentRow;
     resetFocus();
     setTimeout(()=>{
-      document.getElementById('replyPreviewName').textContent=currentRow.classList.contains('receiver')?'Joshua dayo':'You';
-      document.getElementById('replyPreviewText').textContent=text.slice(0,80);
-      const thumb = document.getElementById('replyPreviewThumb');
-      if(thumb){
-        if(img){ thumb.src=img.src; thumb.style.display='block'; }
-        else if(vid && vid.poster){ thumb.src=vid.poster; thumb.style.display='block'; }
-        else thumb.style.display='none';
+      if(window.triggerSwipeReply){
+        window.triggerSwipeReply(rowToReply); // SAME function as swipe
       }
-      window.getCurrentReplyData = () => ({
-        name: document.getElementById('replyPreviewName').textContent,
-        text: text.slice(0,80),
-        thumb: img? img.src : (vid? (vid.poster||'') : ''),
-        isImage:!!img, isVideo:!!vid
-      });
-      document.getElementById('replyPreview').classList.add('show');
-      msgInput.focus();
-    },200);
+    },150);
   }
 
   if(actionPill){
@@ -364,10 +371,9 @@
       else if(act==='react'){ actionPill.style.display='none'; emojiBar.classList.add('show'); }
       else if(act==='reply'){ doReplyFromPill(); }
       else if(act==='favorite'){
-        // TOGGLE FAV
         const imgEl = currentRow?.querySelector('.sticker-bubble img,.sticker-bubble video,.image-bubble img,.video-bubble video');
-        if(!imgEl){ showToast('Added to favorites'); resetFocus(); return; }
-        const src = (imgEl.src || imgEl.currentSrc).split('#')[0];
+        if(!imgEl){ showToast('No media'); resetFocus(); return; }
+        const src = (imgEl.src || imgEl.currentSrc || '').split('#')[0];
         const type = imgEl.tagName==='VIDEO'? 'video' : 'image';
         const idx = stickers.findIndex(s=> (typeof s==='string'? s : s.src).split('#')[0] === src);
         if(idx>=0){
@@ -394,12 +400,22 @@
     });
   }
   if(emojiPlusBtn){ emojiPlusBtn.addEventListener('click', ()=>{ const custom=prompt('Enter emoji:'); if(custom&&currentId){ const badge=document.getElementById(`reaction-${currentId}`); if(badge){ badge.textContent=custom.trim(); badge.classList.add('show'); } resetFocus(); } }); }
+
+  // PLUS PILL - DO NOT TOUCH per spec - working
   if(plusBtn && plusMenu){
     plusBtn.addEventListener('click', (e)=>{
       e.stopPropagation();
       const isShow=plusMenu.classList.contains('show');
-      if(isShow){ plusMenu.classList.add('closing'); setTimeout(()=> plusMenu.classList.remove('show','closing'),250); }
-      else{ plusMenu.classList.add('show'); stickerPanel?.classList.remove('show'); chatBackground.classList.remove('sticker-open'); if(window.lucide) lucide.createIcons(); }
+      if(isShow){
+        plusMenu.classList.add('closing');
+        setTimeout(()=> plusMenu.classList.remove('show','closing'),250);
+      }
+      else{
+        plusMenu.classList.add('show');
+        stickerPanel?.classList.remove('show');
+        chatBackground.classList.remove('sticker-open');
+        if(window.lucide) lucide.createIcons();
+      }
     });
     document.addEventListener('click', (e)=>{
       if(!plusMenu.contains(e.target) && e.target!==plusBtn &&!e.target.closest('#inputPlusBtn')){
@@ -415,12 +431,14 @@
       });
     });
   }
+
   function openPreview(src, type='image'){
     if(!imagePreview) return;
     previewType = type; previewObjectUrl = src;
     if(type==='video'){ previewImage.style.display='none'; previewVideo.src=src; previewVideo.style.display='block'; }
     else { previewVideo.style.display='none'; previewVideo.pause(); previewImage.src=src; previewImage.style.display='block'; }
     imagePreview.classList.add('show');
+    if(window.lucide) lucide.createIcons();
   }
   function handleFile(file){
     if(!file) return;
@@ -446,6 +464,7 @@
     bindRow(row); if(window.lucide) lucide.createIcons(); closePreview(); galleryInput.value=''; cameraInput.value=''; if(window.clearReplyData) window.clearReplyData(); chatMessages.scrollTo({top:chatMessages.scrollHeight, behavior:'smooth'});
   });
 
+  // Sticker panel toggle
   if(stickerBtn && stickerPanel){
     stickerBtn.addEventListener('click', ()=>{
       const isShow=stickerPanel.classList.contains('show');
@@ -460,6 +479,7 @@
     if(msgInput.value.trim().length>0) micBtn?.classList.add('sending'); else micBtn?.classList.remove('sending');
     msgInput.style.height='auto'; msgInput.style.height=msgInput.scrollHeight+'px';
   });
+  // Add sticker box - open select from chat
   stickerAddBox?.addEventListener('click', ()=>{ renderChatStickersSelect(); chatStickerSelectMode?.classList.add('show'); stickerPanel?.classList.remove('show'); chatBackground.classList.remove('sticker-open'); if(window.lucide) lucide.createIcons(); });
   if(chatStickerSelectMode){
     addStickerConfirmBtn?.addEventListener('click', ()=>{
@@ -476,8 +496,12 @@
       showToast('Sticker added');
     });
     stickerSelectClose?.addEventListener('click', ()=> chatStickerSelectMode.classList.remove('show'));
+    // X icon beside Add sticker to cancel - NEW per spec
+    addStickerCancelX?.addEventListener('click', ()=> chatStickerSelectMode.classList.remove('show'));
     chatStickerSelectMode.addEventListener('click', e=>{ if(e.target===chatStickerSelectMode) chatStickerSelectMode.classList.remove('show'); });
   }
+
+  // ===== CREATE STICKER PAGE - iPhone 17 style crop + trim to 3s + text/zoom/crop reflect =====
   function closeCreatePage(){
     createPage.classList.remove('show');
     createImage.src=''; createImage.style.display='none';
@@ -487,38 +511,97 @@
     if(textOverlayWrapper) textOverlayWrapper.style.display='none';
     if(videoTrimBar) videoTrimBar.style.display='none';
     if(stickerFileInput) stickerFileInput.value='';
-    isCropped=false;
+    cropScale=1; cropX=0; cropY=0;
+    if(createImage){ createImage.style.transform = `translate(0px,0px) scale(1)`; }
+    if(createVideo){ createVideo.style.transform = `translate(0px,0px) scale(1)`; }
   }
-  let isDraggingText=false, startDragX=0, startDragY=0, startLeft=0, startTop=0; let textScale=1;
+
+  // Text drag
+  let isDraggingText=false, startDragX=0, startDragY=0, startLeft=0, startTop=0;
+  let textScale=1;
   function initTextDrag(){
     if(!textOverlayWrapper) return;
     textOverlayWrapper.addEventListener('touchstart', (e)=>{
       if(e.target.classList.contains('resize-handle')) return;
       const touch = e.touches[0]; isDraggingText=true; startDragX=touch.clientX; startDragY=touch.clientY;
-      const rect = textOverlayWrapper.getBoundingClientRect(); const parentRect = document.getElementById('createCanvas').getBoundingClientRect();
+      const rect = textOverlayWrapper.getBoundingClientRect(); const parentRect = createCanvasEl.getBoundingClientRect();
       startLeft = rect.left - parentRect.left; startTop = rect.top - parentRect.top;
     }, {passive:true});
     textOverlayWrapper.addEventListener('touchmove', (e)=>{ if(!isDraggingText) return; const touch=e.touches[0]; const dx=touch.clientX-startDragX, dy=touch.clientY-startDragY; textOverlayWrapper.style.left = (startLeft+dx)+'px'; textOverlayWrapper.style.top = (startTop+dy)+'px'; }, {passive:true});
     textOverlayWrapper.addEventListener('touchend', ()=> isDraggingText=false);
-    const handle = textOverlayWrapper.querySelector('.resize-handle'); let isResizing=false, startSize=22;
-    handle?.addEventListener('touchstart', (e)=>{ isResizing=true; startDragX=e.touches[0].clientX; startSize=parseFloat(getComputedStyle(textOverlay).fontSize); e.stopPropagation(); });
-    handle?.addEventListener('touchmove', (e)=>{ if(!isResizing) return; const dx=e.touches[0].clientX-startDragX; textOverlay.style.fontSize = Math.max(12, Math.min(60, startSize + dx*0.3))+'px'; });
-    handle?.addEventListener('touchend', ()=> isResizing=false);
-    let initialDist=0;
-    textOverlayWrapper.addEventListener('touchstart', (e)=>{ if(e.touches.length===2){ initialDist = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY); } });
-    textOverlayWrapper.addEventListener('touchmove', (e)=>{ if(e.touches.length===2){ const dist = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY); const scale = dist/initialDist; textOverlay.style.transform = `scale(${textScale*scale})`; } });
-    textOverlayWrapper.addEventListener('touchend', (e)=>{ if(e.touches.length<2){ const m = textOverlay.style.transform.match(/scale\(([^)]+)\)/); if(m) textScale = parseFloat(m[1]); } });
   }
   initTextDrag();
+
+  // iPhone 17 style crop - direct pinch/drag on image/video
+  function initIphoneCrop(){
+    if(!createCanvasEl) return;
+    let isDraggingCrop=false;
+    createCanvasEl.addEventListener('touchstart', (e)=>{
+      if(e.target.closest('#textOverlayWrapper')) return;
+      if(e.touches.length===1){
+        isDraggingCrop=true;
+        lastX=e.touches[0].clientX; lastY=e.touches[0].clientY;
+      } else if(e.touches.length===2){
+        lastDist = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
+      }
+    }, {passive:true});
+    createCanvasEl.addEventListener('touchmove', (e)=>{
+      if(e.touches.length===1 && isDraggingCrop){
+        const dx=e.touches[0].clientX-lastX;
+        const dy=e.touches[0].clientY-lastY;
+        cropX+=dx; cropY+=dy;
+        lastX=e.touches[0].clientX; lastY=e.touches[0].clientY;
+        updateCropTransform();
+      } else if(e.touches.length===2){
+        const dist = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
+        if(lastDist>0){
+          cropScale *= dist/lastDist;
+          cropScale = Math.max(1, Math.min(3, cropScale));
+          updateCropTransform();
+        }
+        lastDist=dist;
+      }
+      if(e.touches.length>0) e.preventDefault();
+    }, {passive:false});
+    createCanvasEl.addEventListener('touchend', ()=>{ isDraggingCrop=false; lastDist=0; });
+
+    // Mouse drag for desktop testing
+    createCanvasEl.addEventListener('mousedown', (e)=>{
+      if(e.target.closest('#textOverlayWrapper')) return;
+      isDraggingCrop=true; lastX=e.clientX; lastY=e.clientY;
+    });
+    window.addEventListener('mousemove', (e)=>{
+      if(!isDraggingCrop) return;
+      const dx=e.clientX-lastX, dy=e.clientY-lastY;
+      cropX+=dx; cropY+=dy; lastX=e.clientX; lastY=e.clientY;
+      updateCropTransform();
+    });
+    window.addEventListener('mouseup', ()=> isDraggingCrop=false);
+    createCanvasEl.addEventListener('wheel', (e)=>{
+      e.preventDefault();
+      cropScale += e.deltaY<0? 0.1 : -0.1;
+      cropScale = Math.max(1, Math.min(3, cropScale));
+      updateCropTransform();
+    }, {passive:false});
+  }
+  function updateCropTransform(){
+    const t = `translate(${cropX}px, ${cropY}px) scale(${cropScale})`;
+    if(createImage && createImage.style.display!=='none') createImage.style.transform = t;
+    if(createVideo && createVideo.style.display!=='none') createVideo.style.transform = t;
+  }
+  initIphoneCrop();
 
   createPlaceholder?.addEventListener('click', ()=> stickerFileInput?.click());
   stickerFileInput?.addEventListener('change', e=>{
     const file=e.target.files[0]; if(!file) return; const url=URL.createObjectURL(file);
+    cropScale=1; cropX=0; cropY=0;
     if(file.type.startsWith('video/')){
       createImage.style.display='none';
       createVideo.src=url; createVideo.style.display='block'; createVideo.load();
+      createVideo.style.transform = `translate(0px,0px) scale(1)`;
       videoTrimBar.style.display='flex';
-      trimStart.min=0; trimStart.value=0; trimEnd.value=3; trimLabel.textContent='0s - 3s (max 3s)';
+      trimStart.min=0; trimStart.value=0; trimEnd.value=3;
+      trimLabel.textContent='0s - 3s (max 3s)';
       createVideo.addEventListener('loadedmetadata', ()=>{
         const dur = createVideo.duration;
         trimStart.max = dur; trimEnd.max = dur;
@@ -530,58 +613,107 @@
     } else {
       if(createVideo){ createVideo.style.display='none'; createVideo.pause(); }
       createImage.src=url; createImage.style.display='block'; videoTrimBar.style.display='none';
+      createImage.style.transform = `translate(0px,0px) scale(1)`;
     }
     createPlaceholder.style.display='none';
     if(textOverlayWrapper){ textOverlayWrapper.style.display='flex'; textOverlayWrapper.style.left='50%'; textOverlayWrapper.style.top='55%'; textOverlayWrapper.style.transform='translate(-50%,-50%)'; }
   });
   trimStart?.addEventListener('input', ()=>{
-    const s=parseFloat(trimStart.value), e=parseFloat(trimEnd.value);
-    if(s>=e-0.2) trimStart.value = (e-0.2).toFixed(1);
+    let s=parseFloat(trimStart.value), en=parseFloat(trimEnd.value);
+    if(s>=en-0.2) trimStart.value = (en-0.2).toFixed(1);
     if((parseFloat(trimEnd.value)-parseFloat(trimStart.value))>3){ trimEnd.value = (parseFloat(trimStart.value)+3).toFixed(1); }
     trimLabel.textContent = `${parseFloat(trimStart.value).toFixed(1)}s - ${parseFloat(trimEnd.value).toFixed(1)}s`;
     if(createVideo) createVideo.currentTime = parseFloat(trimStart.value);
   });
   trimEnd?.addEventListener('input', ()=>{
-    const s=parseFloat(trimStart.value), e=parseFloat(trimEnd.value);
-    if(e<=s+0.2) trimEnd.value = (s+0.2).toFixed(1);
-    if((parseFloat(trimEnd.value)-parseFloat(trimStart.value))>3){ trimEnd.value = (parseFloat(trimStart.value)+3).toFixed(1); }
+    let s=parseFloat(trimStart.value), en=parseFloat(trimEnd.value);
+    if(en<=s+0.2) trimEnd.value = (s+0.2).toFixed(1);
+    if((parseFloat(trimEnd.value)-parseFloat(trimStart.value))>3){
+      trimEnd.value = (parseFloat(trimStart.value)+3).toFixed(1);
+      showToast('Max 3 seconds');
+    }
     trimLabel.textContent = `${parseFloat(trimStart.value).toFixed(1)}s - ${parseFloat(trimEnd.value).toFixed(1)}s`;
   });
   addTextBtn?.addEventListener('click', ()=>{ if(textOverlayWrapper) textOverlayWrapper.style.display='flex'; textOverlay.focus(); });
-  boldTextBtn?.addEventListener('click', ()=>{ if(!textOverlay) return; textOverlay.classList.toggle('bold'); textOverlay.focus(); if(window.lucide) lucide.createIcons(); });
+  boldTextBtn?.addEventListener('click', ()=>{ if(!textOverlay) return; textOverlay.classList.toggle('bold'); textOverlay.focus(); });
   zoomTextBtn?.addEventListener('click', ()=>{ textScale = textScale >= 1.8? 1 : textScale+0.2; textOverlay.style.transform = `scale(${textScale})`; });
   cropBtn?.addEventListener('click', ()=>{
+    // Toggle crop mode hint - iPhone style already active via drag/pinch
     isCropped =!isCropped;
-    const canvas = document.getElementById('createCanvas');
-    if(isCropped){ canvas.style.aspectRatio='1'; createImage.style.objectFit='cover'; createVideo.style.objectFit='cover'; showToast('Crop: Cover'); }
-    else { createImage.style.objectFit='contain'; createVideo.style.objectFit='contain'; showToast('Crop: Contain'); }
+    showToast(isCropped? 'Crop mode: drag & pinch image' : 'Crop reset');
+    if(!isCropped){ cropScale=1; cropX=0; cropY=0; updateCropTransform(); }
   });
+
+  // Final export - text + zoom + crop must reflect
   createAddBtn?.addEventListener('click', ()=>{
     const hasImage = createImage.src && createImage.style.display!=='none';
     const hasVideo = createVideo && createVideo.src && createVideo.style.display!=='none';
     if(!hasImage &&!hasVideo) { showToast('Select image or video first'); return; }
+    // For MVP, we save with trim hash and also bake text/crop info via canvas if image
+    // Video: trim to max 3s using #t=start,end
     let src = hasVideo? createVideo.src : createImage.src;
     let type = hasVideo? 'video' : 'image';
+
     if(hasVideo){
       const start = parseFloat(trimStart.value)||0; const end = parseFloat(trimEnd.value)||3;
       if((end-start)>3.1){ showToast('Max 3 seconds'); return; }
       src = src.split('#')[0] + `#t=${start},${end}`;
     }
+
+    // If image and text exists, bake text + crop + zoom onto canvas for final sticker
+    if(hasImage && (textOverlay.textContent.trim() || cropScale!==1 || cropX!==0 || cropY!==0)){
+      const canvas = stickerCanvas || document.createElement('canvas');
+      canvas.width = 512; canvas.height = 512;
+      const ctx = canvas.getContext('2d');
+      // Simple bake: draw image with crop
+      const img = new Image();
+      img.src = createImage.src;
+      img.onload = ()=>{
+        ctx.clearRect(0,0,512,512);
+        // Apply crop transform
+        ctx.save();
+        ctx.translate(256 + cropX, 256 + cropY);
+        ctx.scale(cropScale, cropScale);
+        ctx.drawImage(img, -256, -256, 512, 512);
+        ctx.restore();
+        // Draw text
+        if(textOverlay.textContent.trim()){
+          ctx.font = `${textOverlay.classList.contains('bold')? '900' : '800'} ${22*textScale}px sans-serif`;
+          ctx.fillStyle = 'white';
+          ctx.strokeStyle = 'black';
+          ctx.lineWidth = 3;
+          ctx.textAlign = 'center';
+          const tx = parseFloat(textOverlayWrapper.style.left) || 256;
+          const ty = parseFloat(textOverlayWrapper.style.top) || 280;
+          ctx.strokeText(textOverlay.textContent, tx, ty);
+          ctx.fillText(textOverlay.textContent, tx, ty);
+        }
+        const finalSrc = canvas.toDataURL('image/png');
+        saveSticker(finalSrc, 'image');
+      };
+      return;
+    }
+
+    saveSticker(src, type);
+  });
+
+  function saveSticker(src, type){
     const cleanCheck = src.split('#')[0];
     const exists = stickers.some(s=> (typeof s==='string'? s : s.src).split('#')[0] === cleanCheck);
     if(exists){ showToast('Already in pack'); return; }
     stickers.push({src, type});
     localStorage.setItem('my_stickers', JSON.stringify(stickers));
-    renderStickers(); closeCreatePage(); msgInput.blur();
+    renderStickers(); closeCreatePage();
     setTimeout(()=>{ stickerPanel.classList.add('show'); chatBackground.classList.add('sticker-open'); if(window.lucide) lucide.createIcons(); },150);
     showToast('Added to sticker pack');
-  });
+  }
+
   createClose?.addEventListener('click', closeCreatePage);
   createBack?.addEventListener('click', closeCreatePage);
   createCancelBtn?.addEventListener('click', closeCreatePage);
   createPage?.addEventListener('click', (e)=>{ if(e.target===createPage) closeCreatePage(); });
 
-  // VOICE - CUSTOM COUNTING NOT DEFAULT
+  // VOICE RECORDING
   let mediaRecorder = null; let audioChunks = []; let audioStream = null; let isRecording = false; let shouldSend = false;
   function animateWave(){ if(!voiceWaveBig) return; voiceWaveBig.querySelectorAll('span').forEach(sp=>{ sp.style.height = (8 + Math.random()*22)+'px'; }); }
   async function startVoice(){
@@ -612,16 +744,9 @@
     const blob = new Blob(audioChunks, { type: 'audio/webm' }); const url = URL.createObjectURL(blob);
     const id='msg_'+Date.now(); const timeStr = voiceTimer? voiceTimer.textContent : `0:${String(voiceSec).padStart(2,'0')}`;
     const row=document.createElement('div'); row.className='msg-row sender'; row.dataset.messageId=id;
-    row.innerHTML=`<div class="select-circle"><i data-lucide="check"></i></div><div class="bubble voice-bubble"><button class="voice-play-btn"><i data-lucide="play"></i><i data-lucide="pause" class="pause-icon" style="display:none"></i></button><div class="voice-wave"><span></span><span></span><span></span><span></span></div><span class="voice-duration">${timeStr}</span><span class="msg-meta right-meta"><span class="msg-time">${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</span><i data-lucide="check-check" class="tick-icon blue"></i></span><audio src="${url}"></audio></div>`;
+    row.innerHTML=`<div class="select-circle"><i data-lucide="check"></i></div><div class="bubble voice-bubble"><button class="voice-play-btn"><i data-lucide="play"></i></button><div class="voice-wave"><span></span><span></span><span></span><span></span></div><span class="voice-duration">${timeStr}</span><span class="msg-meta right-meta"><span class="msg-time">${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</span><i data-lucide="check-check" class="tick-icon blue"></i></span><audio src="${url}"></audio></div>`;
     chatMessages.insertBefore(row, document.getElementById('typingIndicator'));
     bindRow(row);
-    const btn = row.querySelector('.voice-play-btn'); const aud = row.querySelector('audio');
-    btn.addEventListener('click', ()=>{
-      if(aud.paused){ document.querySelectorAll('.voice-bubble audio').forEach(a=>{ if(a!==aud){ a.pause(); a.currentTime=0; }}); aud.play(); btn.querySelector('[data-lucide="play"]').style.display='none'; btn.querySelector('.pause-icon').style.display='block'; }
-      else { aud.pause(); btn.querySelector('[data-lucide="play"]').style.display='block'; btn.querySelector('.pause-icon').style.display='none'; }
-      if(window.lucide) lucide.createIcons();
-    });
-    aud.addEventListener('ended', ()=>{ btn.querySelector('[data-lucide="play"]').style.display='block'; btn.querySelector('.pause-icon').style.display='none'; if(window.lucide) lucide.createIcons(); });
     if(window.lucide) lucide.createIcons(); chatMessages.scrollTo({top:chatMessages.scrollHeight, behavior:'smooth'}); cleanupStream(); audioChunks=[];
   }
   function stopVoice(send){ shouldSend = send; if(!mediaRecorder || mediaRecorder.state==='inactive'){ voiceOverlay?.classList.remove('show'); chatBackground.classList.remove('voice-open'); cleanupStream(); isRecording=false; return; } mediaRecorder.onstop = ()=>{ if(shouldSend && voiceSec>=1) sendVoiceMessage(); else { cleanupStream(); audioChunks=[]; } voiceOverlay?.classList.remove('show'); chatBackground.classList.remove('voice-open'); isRecording=false; voiceSec=0; }; mediaRecorder.stop(); }
@@ -643,7 +768,6 @@
 
   function doDelete(type){ selectedMessages.forEach(id=>{ const row=document.querySelector(`[data-message-id="${id}"]`); if(row){ row.style.transition='opacity 0.25s'; row.style.opacity='0'; setTimeout(()=> row.remove(),250); } }); exitSelectMode(); if(type==='everyone') showToast('Deleted for everyone'); else showToast('Deleted for me'); }
   deleteActionBar?.addEventListener('click', e=>{ const btn=e.target.closest('[data-delete]'); if(!btn) return; doDelete(btn.dataset.delete); });
-  headerDeleteBtn?.addEventListener('click', ()=> { if(selectedMessages.size>0){ const hasReceiverOnly = [...selectedMessages].every(id=>{ const r=document.querySelector(`[data-message-id="${id}"]`); return r?.classList.contains('receiver'); }); doDelete(hasReceiverOnly?'me':'everyone'); } });
   headerCancelBtn?.addEventListener('click', ()=> exitSelectMode());
   overlay?.addEventListener('click', ()=>{ if(deleteActionBar?.classList.contains('show')) exitSelectMode(); else resetFocus(); });
   document.addEventListener('keydown', e=>{
@@ -652,6 +776,8 @@
       else if(createPage?.classList.contains('show')) closeCreatePage();
       else if(voiceOverlay?.classList.contains('show')) stopVoice(false);
       else if(videoFullOverlay?.classList.contains('show')){ videoFullOverlay.classList.remove('show'); videoFullPlayer.pause(); }
+      else if(imagePreview?.classList.contains('show')) closePreview();
+      else if(plusMenu?.classList.contains('show')){ plusMenu.classList.remove('show'); }
       else resetFocus();
     }
   });
