@@ -174,16 +174,15 @@
 
   // ================= STICKER RENDER - FIXED FOR 6S REPLAY =================
   // Helper to force play sticker videos
+ 
+
   function forcePlayStickerVideos(){
     document.querySelectorAll('.sticker-item video,.sticker-bubble video').forEach(v=>{
-      v.muted = true;
-      v.loop = true;
-      v.autoplay = true;
-      v.playsInline = true;
-      v.setAttribute('playsinline','');
-      v.setAttribute('webkit-playsinline','');
-      const p = v.play();
-      if(p) p.catch(()=>{});
+      if(v.paused){
+        v.muted=true;
+        v.playsInline=true;
+        v.play().catch(()=>{});
+      }
     });
   }
 
@@ -196,26 +195,27 @@
       const src=typeof item==='string'? item : item.src;
       const type=typeof item==='string'? 'image' : (item.type||'image');
       const clean=src.split('#')[0];
-      if(seen.has(clean)) return;
-      seen.add(clean);
+      if(seen.has(clean)) return; seen.add(clean);
       const div=document.createElement('div');
       div.className='sticker-item'+(type==='video'? ' is-video':'');
       if(type==='video'){
-        // STICKER PANEL: must loop replay 6s cut
-        const video = document.createElement('video');
-        video.src = src;
-        video.muted = true;
-        video.loop = true;
-        video.autoplay = true;
-        video.playsInline = true;
+        div.innerHTML='';
+        const video=document.createElement('video');
+        video.muted=true;
+        video.loop=true;
+        video.autoplay=true;
+        video.playsInline=true;
+        video.preload='auto';
         video.setAttribute('playsinline','');
         video.setAttribute('webkit-playsinline','');
         video.setAttribute('muted','');
         video.setAttribute('loop','');
         video.setAttribute('autoplay','');
+        video.src=src;
+        // important for phone: play when canplay
+        video.addEventListener('canplay', ()=>{ video.play().catch(()=>{}); }, {once:true});
         div.appendChild(video);
-        // force play after append
-        setTimeout(()=>{ video.play().catch(()=>{}); }, 100);
+        setTimeout(()=> video.play().catch(()=>{}), 80);
       } else {
         div.innerHTML=`<img src="${src}">`;
       }
@@ -223,30 +223,27 @@
       stickerGrid.insertBefore(div, stickerAddBox.nextSibling);
     });
     if(window.lucide) lucide.createIcons();
-    // extra force after render
-    setTimeout(forcePlayStickerVideos, 300);
+    setTimeout(forcePlayStickerVideos, 250);
   }
 
   function sendSticker(src,type='image'){
     const id='msg_'+Date.now();
     const row=document.createElement('div');
-    row.className='msg-row sender';
-    row.dataset.messageId=id;
+    row.className='msg-row sender'; row.dataset.messageId=id;
     if(type==='video'){
-      // CHAT STICKER: 6s cut, loop replay forever until tap
-      row.innerHTML=`<div class="select-circle"><i data-lucide="check"></i></div><div class="swipe-reply-icon"><i data-lucide="reply"></i></div><div class="bubble sticker-bubble"><video src="${src}" muted loop autoplay playsinline webkit-playsinline></video><span class="msg-meta sticker-meta right-meta"><span class="msg-time">${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</span><i data-lucide="check-check" class="tick-icon blue"></i></span><span class="msg-reaction-badge" id="reaction-${id}"></span></div>`;
+      row.innerHTML=`<div class="select-circle"><i data-lucide="check"></i></div><div class="swipe-reply-icon"><i data-lucide="reply"></i></div><div class="bubble sticker-bubble"><span class="msg-meta sticker-meta right-meta"><span class="msg-time">${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</span><i data-lucide="check-check" class="tick-icon blue"></i></span><span class="msg-reaction-badge" id="reaction-${id}"></span></div>`;
+      const bubble=row.querySelector('.sticker-bubble');
+      const video=document.createElement('video');
+      video.src=src; video.muted=true; video.loop=true; video.autoplay=true; video.playsInline=true; video.preload='auto';
+      video.setAttribute('playsinline',''); video.setAttribute('webkit-playsinline',''); video.setAttribute('muted',''); video.setAttribute('loop',''); video.setAttribute('autoplay','');
+      bubble.prepend(video);
+      video.addEventListener('canplay', ()=> video.play().catch(()=>{}), {once:true});
+      setTimeout(()=> video.play().catch(()=>{}), 120);
     } else {
       row.innerHTML=`<div class="select-circle"><i data-lucide="check"></i></div><div class="swipe-reply-icon"><i data-lucide="reply"></i></div><div class="bubble sticker-bubble"><img src="${src}"><span class="msg-meta sticker-meta right-meta"><span class="msg-time">${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</span><i data-lucide="check-check" class="tick-icon blue"></i></span><span class="msg-reaction-badge" id="reaction-${id}"></span></div>`;
     }
     chatMessages.insertBefore(row, document.getElementById('typingIndicator'));
     bindRow(row);
-    if(type==='video'){
-      const v = row.querySelector('video');
-      if(v){
-        v.muted=true; v.loop=true; v.autoplay=true; v.playsInline=true;
-        setTimeout(()=>{ v.play().catch(()=>{}); }, 120);
-      }
-    }
     if(window.lucide) lucide.createIcons();
     chatMessages.scrollTo({top:chatMessages.scrollHeight, behavior:'smooth'});
     stickerPanel.classList.remove('show'); chatBackground.classList.remove('sticker-open');
@@ -288,9 +285,10 @@
     const stickerVideo=row.querySelector('.sticker-bubble video');
     if(stickerVideo &&!stickerVideo.dataset.boundSticker){
       stickerVideo.dataset.boundSticker="1";
-      stickerVideo.muted=true; stickerVideo.loop=true; stickerVideo.autoplay=true; stickerVideo.playsInline=true;
+      stickerVideo.muted=true; stickerVideo.loop=true; stickerVideo.autoplay=true; stickerVideo.playsInline=true; stickerVideo.preload='auto';
       stickerVideo.setAttribute('muted',''); stickerVideo.setAttribute('loop',''); stickerVideo.setAttribute('autoplay',''); stickerVideo.setAttribute('playsinline','');
-      setTimeout(()=>{ stickerVideo.play().catch(()=>{}); }, 150);
+      stickerVideo.addEventListener('canplay', ()=> stickerVideo.play().catch(()=>{}), {once:true});
+      setTimeout(()=> stickerVideo.play().catch(()=>{}), 200);
       stickerVideo.addEventListener('click', ()=> openVideoFull(stickerVideo.src, ''));
     }
 
@@ -305,36 +303,53 @@
     }
 
     // VOICE PLAY FIX
+       // VOICE PLAY - FIXED PAUSE ICON FOR PHONE
     const voiceBubble=row.querySelector('.voice-bubble');
     if(voiceBubble &&!voiceBubble.dataset.voiceBound){
       voiceBubble.dataset.voiceBound="1";
-      voiceBubble.addEventListener('click', (e)=>{
-        const btn = e.target.closest('.voice-play-btn');
-        if(!btn) return;
-        const audio = voiceBubble.querySelector('audio');
-        if(!audio) return;
+      const btn = voiceBubble.querySelector('.voice-play-btn');
+      const audio = voiceBubble.querySelector('audio');
+      if(!btn ||!audio) return;
+
+      // create both icons once
+      btn.innerHTML = `<i data-lucide="play" class="play-ic"></i><i data-lucide="pause" class="pause-ic" style="display:none"></i>`;
+      if(window.lucide) lucide.createIcons();
+
+      const showPlay = ()=>{
+        const playIc = btn.querySelector('.play-ic');
+        const pauseIc = btn.querySelector('.pause-ic');
+        if(playIc) playIc.style.display='block';
+        if(pauseIc) pauseIc.style.display='none';
+        voiceBubble.classList.remove('playing');
+      };
+      const showPause = ()=>{
+        const playIc = btn.querySelector('.play-ic');
+        const pauseIc = btn.querySelector('.pause-ic');
+        if(playIc) playIc.style.display='none';
+        if(pauseIc) pauseIc.style.display='block';
+        voiceBubble.classList.add('playing');
+      };
+
+      btn.addEventListener('click', (e)=>{
         e.stopPropagation();
         if(audio.paused){
           document.querySelectorAll('.voice-bubble audio').forEach(a=>{ if(a!==audio){ a.pause(); a.currentTime=0; } });
-          document.querySelectorAll('.voice-bubble').forEach(b=> b.classList.remove('playing'));
-          audio.play().then(()=>{
-            voiceBubble.classList.add('playing');
-            const ic = btn.querySelector('i'); if(ic){ ic.setAttribute('data-lucide','pause'); if(window.lucide) lucide.createIcons(); }
-          }).catch(()=>{ showToast('Tap to play'); });
+          document.querySelectorAll('.voice-bubble').forEach(b=>{
+            b.classList.remove('playing');
+            const bPlay = b.querySelector('.play-ic');
+            const bPause = b.querySelector('.pause-ic');
+            if(bPlay) bPlay.style.display='block';
+            if(bPause) bPause.style.display='none';
+          });
+          audio.play().then(showPause).catch(()=> showToast('Tap again'));
         } else {
           audio.pause();
-          voiceBubble.classList.remove('playing');
-          const ic = btn.querySelector('i'); if(ic){ ic.setAttribute('data-lucide','play'); if(window.lucide) lucide.createIcons(); }
+          showPlay();
         }
       });
-      const audioEl = voiceBubble.querySelector('audio');
-      if(audioEl){
-        audioEl.addEventListener('ended', ()=>{
-          voiceBubble.classList.remove('playing');
-          const ic = voiceBubble.querySelector('.voice-play-btn i');
-          if(ic){ ic.setAttribute('data-lucide','play'); if(window.lucide) lucide.createIcons(); }
-        });
-      }
+
+      audio.addEventListener('ended', showPlay);
+      audio.addEventListener('pause', showPlay);
     }
   }
 
