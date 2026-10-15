@@ -1,0 +1,287 @@
+/* ================= KONNEKT CALL - iPHONE 17 WHATSAPP STYLE ================= */
+
+/* ----- INCOMING TILE (LIST + CHAT) ----- */
+.konnekt-incoming-tile{
+  display:none !important;
+  align-items:center;
+  gap:12px;
+  padding:12px 14px;
+  margin:10px 12px;
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius:16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  border:1px solid rgba(0,0,0,0.06);
+  animation: incomingShake .6s ease;
+  position:relative;
+  z-index:20;
+}
+.konnekt-incoming-tile.show{
+  display:flex !important;
+}
+.konnekt-incoming-tile.inside-chat{
+  margin: 0;
+  border-radius:0;
+  border-left:none;
+  border-right:none;
+  border-top:none;
+  background: #fff;
+}
+.konnekt-incoming-ava{
+  width:48px; height:48px;
+  border-radius:50%;
+  object-fit:cover;
+  animation: avatarPulse 1.5s infinite;
+}
+.konnekt-incoming-info{ flex:1; display:flex; flex-direction:column; }
+.konnekt-incoming-name{ font-weight:700; font-size:15px; color:#000; margin:0; }
+.konnekt-incoming-sub{ font-size:13px; color:#666; margin:2px 0 0; }
+.konnekt-incoming-actions{ display:flex; gap:10px; }
+.konnekt-call-mini{
+  width:42px; height:42px;
+  border-radius:50%;
+  border:none;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer;
+  transition: all .2s ease;
+}
+.konnekt-call-mini.accept{ background:#00d757; color:#fff; }
+.konnekt-call-mini.decline{ background:#ff3b30; color:#fff; transform: rotate(135deg); }
+.konnekt-call-mini:active{ transform: scale(.92); }
+.konnekt-call-mini.accept:active{ transform: scale(.92); }
+.konnekt-call-mini.decline:active{ transform: scale(.92) rotate(135deg); }
+
+/* ----- FULL CALL OVERLAY - OLED BLACK ----- */
+.konnekt-call-overlay{
+  display:none !important;
+  position:fixed !important;
+  inset:0 !important;
+  width:100vw !important;
+  height:100vh !important;
+  height:100dvh !important;
+  background:#000 !important;
+  z-index:9999 !important;
+  flex-direction:column;
+  justify-content:space-between;
+  padding: env(safe-area-inset-top, 20px) 20px env(safe-area-inset-bottom, 30px);
+  box-sizing:border-box;
+}
+.konnekt-call-overlay.show{
+  display:flex !important;
+}
+.konnekt-call-overlay.minimized{
+  display:none !important;
+}
+
+.konnekt-call-top{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  padding-top:10px;
+}
+.konnekt-call-center{ text-align:center; flex:1; }
+.konnekt-call-name{ color:#fff; font-size:22px; font-weight:700; margin:0; letter-spacing:-0.3px; }
+.konnekt-call-status{ color:rgba(255,255,255,0.7); font-size:14px; margin:4px 0 0; font-variant-numeric: tabular-nums; }
+.konnekt-call-top-right{ display:flex; gap:8px; width:68px; justify-content:flex-end; }
+.konnekt-top-icon{
+  width:36px; height:36px;
+  border-radius:50%;
+  background: rgba(255,255,255,0.15);
+  border:none;
+  color:#fff;
+  display:flex; align-items:center; justify-content:center;
+  backdrop-filter: blur(20px);
+  cursor:pointer;
+}
+.konnekt-top-icon:active{ transform:scale(.92); }
+
+.konnekt-call-middle{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:32px;
+}
+.konnekt-call-big-ava{
+  width:140px; height:140px;
+  border-radius:50%;
+  object-fit:cover;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.1);
+}
+.konnekt-glass-tile{
+  display:flex;
+  gap:16px;
+  padding:10px 14px;
+  background: rgba(255,255,255,0.12);
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+  border-radius:40px;
+  border:1px solid rgba(255,255,255,0.1);
+}
+.konnekt-glass-btn{
+  width:54px; height:54px;
+  border-radius:50%;
+  background: rgba(255,255,255,0.18);
+  border:none;
+  color:#fff;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer;
+  transition: all .2s ease;
+  position:relative;
+}
+.konnekt-glass-btn svg{ width:22px; height:22px; }
+
+/* ACTIVE RED STATES */
+.konnekt-glass-btn.mute-active,
+.konnekt-glass-btn.active{
+  background:#ff3b30 !important;
+  color:#fff !important;
+  box-shadow: 0 0 20px rgba(255,59,48,0.4);
+}
+
+/* WIGGLE LIKE iPHONE */
+.konnekt-glass-btn.wiggle, .konnekt-exp-btn.wiggle{
+  animation: iphoneWiggle .45s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+.konnekt-call-bottom{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:8px;
+  padding-bottom:10px;
+}
+.konnekt-end-btn{
+  width:68px; height:68px;
+  border-radius:50%;
+  background:#ff3b30;
+  border:none;
+  color:#fff;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer;
+  transform: rotate(135deg);
+  box-shadow: 0 4px 20px rgba(255,59,48,0.4);
+}
+.konnekt-end-btn svg{ width:28px; height:28px; }
+.konnekt-end-btn:active{ transform: rotate(135deg) scale(.92); }
+.konnekt-end-label{ color:rgba(255,255,255,0.6); font-size:13px; }
+
+/* ----- DYNAMIC PILL (iPHONE DYNAMIC ISLAND) ----- */
+.konnekt-dynamic-pill{
+  position:fixed;
+  top:12px;
+  left:50%;
+  transform:translateX(-50%);
+  background:#000;
+  color:#fff;
+  padding:8px 14px 8px 10px;
+  border-radius:30px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  z-index:10000;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+  cursor:pointer;
+  transition: all .3s cubic-bezier(.34,1.56,.64,1);
+  min-width:0;
+}
+.konnekt-dynamic-pill.hidden{ display:none !important; }
+.konnekt-dot{
+  width:8px; height:8px;
+  background:#00d757;
+  border-radius:50%;
+  animation: dotBlink 1.2s infinite;
+}
+.konnekt-pill-ava{ width:24px; height:24px; border-radius:50%; object-fit:cover; }
+.konnekt-pill-name{ font-size:13px; font-weight:600; white-space:nowrap; }
+.konnekt-pill-time{ font-size:12px; color:rgba(255,255,255,0.7); font-variant-numeric: tabular-nums; }
+.konnekt-dynamic-pill:active{ transform:translateX(-50%) scale(.97); }
+
+/* ----- EXPANDED PILL ----- */
+.konnekt-expanded-pill{
+  position:fixed;
+  top:10px;
+  left:12px;
+  right:12px;
+  background: #000;
+  border-radius:20px;
+  padding:14px 16px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  z-index:10001;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+  animation: expandPop .35s cubic-bezier(.34,1.56,.64,1);
+}
+.konnekt-expanded-pill.hidden{ display:none !important; }
+.konnekt-expanded-left{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex:1;
+  cursor:pointer;
+}
+.konnekt-expanded-ava{ width:40px; height:40px; border-radius:50%; }
+.konnekt-expanded-left div{ display:flex; flex-direction:column; }
+.konnekt-expanded-left b{ color:#fff; font-size:14px; }
+.konnekt-expanded-left span{ color:rgba(255,255,255,0.6); font-size:12px; }
+.konnekt-expanded-actions{ display:flex; gap:8px; }
+.konnekt-exp-btn{
+  width:38px; height:38px;
+  border-radius:50%;
+  border:none;
+  background: rgba(255,255,255,0.15);
+  color:#fff;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer;
+  transition: all .2s;
+}
+.konnekt-exp-btn.end{ background:#ff3b30; transform:rotate(135deg); }
+.konnekt-exp-btn.end:active{ transform:rotate(135deg) scale(.92); }
+.konnekt-exp-btn.mute-active, .konnekt-exp-btn.active{ background:#ff3b30 !important; color:#fff !important; }
+.konnekt-exp-btn:active{ transform:scale(.92); }
+
+/* ----- ANIMATIONS ----- */
+@keyframes iphoneWiggle{
+  0%,100%{ transform:rotate(0) scale(1); }
+  15%{ transform:rotate(-10deg) scale(1.08); }
+  30%{ transform:rotate(10deg) scale(1.08); }
+  45%{ transform:rotate(-6deg) scale(1.05); }
+  60%{ transform:rotate(6deg) scale(1.05); }
+  75%{ transform:rotate(-2deg) scale(1.02); }
+}
+@keyframes incomingShake{
+  0%{ transform:translateX(0); }
+  20%{ transform:translateX(-4px); }
+  40%{ transform:translateX(4px); }
+  60%{ transform:translateX(-2px); }
+  80%{ transform:translateX(2px); }
+  100%{ transform:translateX(0); }
+}
+@keyframes avatarPulse{
+  0%{ box-shadow:0 0 0 0 rgba(0,215,87,0.4); }
+  70%{ box-shadow:0 0 0 10px rgba(0,215,87,0); }
+  100%{ box-shadow:0 0 0 0 rgba(0,215,87,0); }
+}
+@keyframes dotBlink{ 0%,100%{opacity:1} 50%{opacity:.4} }
+@keyframes expandPop{
+  0%{ transform:scale(.9) translateY(-10px); opacity:0; }
+  100%{ transform:scale(1) translateY(0); opacity:1; }
+}
+
+/* ----- PHONE ICON FIX INSIDE CHAT BACKGROUND ----- */
+#startOutgoingCallBtn{
+  cursor:pointer;
+  pointer-events:auto !important;
+  position:relative;
+  z-index:5;
+}
+.calls{ pointer-events:auto !important; }
+
+/* MOBILE */
+@media(max-width:768px){
+  .konnekt-call-big-ava{ width:120px; height:120px; }
+  .konnekt-glass-btn{ width:50px; height:50px; }
+}

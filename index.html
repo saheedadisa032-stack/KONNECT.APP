@@ -17,6 +17,7 @@
 <!----- sidebar css link ------>
 <link rel="stylesheet" href="sidebar.css">
 <!----- main css link ------>
+
 <link rel="stylesheet" href="main.css">
 <!----- main media css link ------>
 <link rel="stylesheet" href="main-media.css">
@@ -29,6 +30,7 @@
 <!----- desktop media scroll  link ------>
 <link rel="stylesheet" href="desktop-media.css">
 <link rel="stylesheet" href="extra.css">
+<link rel="stylesheet" href="call.css">
     <title>KONNEKT</title>
 </head>
 <body>
@@ -98,9 +100,24 @@
       </button>
     </div>
 
+    
+    
     <div class="search-wrap">
       <input type="text" placeholder=" search @username or start new chat" class="search-chat" id="searchChatInput">
       <i data-lucide="search" class="search-chat-icon"></i>
+    </div>
+
+    <!-- INCOMING CALL TILE - FOR CHAT LOAD LIST -->
+    <div class="konnekt-incoming-tile" id="incomingTileList" style="display:none">
+      <img class="konnekt-incoming-ava" id="incomingAvaList" src="" />
+      <div class="konnekt-incoming-info">
+        <p class="konnekt-incoming-name" id="incomingNameList">Joshua dayo</p>
+        <p class="konnekt-incoming-sub">Incoming voice call...</p>
+      </div>
+      <div class="konnekt-incoming-actions">
+        <button class="konnekt-call-mini accept" id="acceptCallList"><i data-lucide="phone"></i></button>
+        <button class="konnekt-call-mini decline" id="declineCallList"><i data-lucide="phone"></i></button>
+      </div>
     </div>
 
     <div class="chat-tabs">
@@ -327,6 +344,23 @@
 <div class="chat-background" id="chatBackground">
   <!-- ================= HEADER SECTION ================= -->
   <!-- Contains profile, mood pill, and call/select controls -->
+   <!-- INCOMING CALL TILE - FOR CHAT BACKGROUND (top) -->
+
+      <div class="konnekt-incoming-tile inside-chat" id="incomingTileChat" >
+    <img class="konnekt-incoming-ava" id="incomingAvaChat" src="" />
+    <div class="konnekt-incoming-info">
+      <p class="konnekt-incoming-name" id="incomingNameChat">Joshua dayo</p>
+      <p class="konnekt-incoming-sub">Incoming voice call...</p>
+    </div>
+    <div class="konnekt-incoming-actions">
+      <button class="konnekt-call-mini accept" id="acceptCallChat"><i data-lucide="phone"></i></button>
+      <button class="konnekt-call-mini decline" id="declineCallChat"><i data-lucide="phone"></i></button>
+    </div>
+  </div>
+
+  <!-- OUTGOING + CONNECTED OVERLAY - OLED BLACK, NO BORDER -->
+ 
+
   <div class="profile-headerchatBackground">
     <div class="profile-extraBorder">
       <div class="arrow-icon" onclick="closeChat()"><i data-lucide="chevron-left" class="arrow-left-chatBackground"></i></div>
@@ -368,7 +402,9 @@
 
     <!-- Header right controls - calls and select mode -->
     <div class="calls" id="callsIcons">
-      <i data-lucide="phone" class="phone-call"></i>
+<button class="phone-call-btn" id="startOutgoingCallBtn" style="background:none;border:none;cursor:pointer;">
+  <i data-lucide="phone" class="phone-call"></i>
+</button>
       <i data-lucide="video" class="video-call"></i>
       <!-- SELECT MODE PILL - X icon + count together in one pill, responsive -->
       <!-- Delete icon removed as requested -->
@@ -378,6 +414,7 @@
       </div>
     </div>
   </div>
+ 
 <!-- iPhone 18 Notification - VISIBLE PREVIEW -->
 <div class="ios-notify" id="iosNotifyPreview">
   <div class="ios-notify-avatar">JD</div>
@@ -582,6 +619,64 @@
   <div class="toast" id="toast"><i data-lucide="star"></i><span>Added to favorites</span></div>
   <input type="file" id="galleryInput" accept="image/*,video/*" hidden><input type="file" id="cameraInput" accept="image/*,video/*" capture="environment" hidden>
 </div>
+
+ <!-- end chat-background -->
+
+<!-- ===== CALL UI - GLOBAL, OUTSIDE CHAT BACKGROUNDS ===== -->
+<!-- INCOMING FOR LIST already dey inside chatLoadList - keep am there -->
+
+<div class="konnekt-call-overlay" id="callOverlay" style="display:none">
+  <div class="konnekt-call-top">
+    <div style="width:68px"></div>
+    <div class="konnekt-call-center">
+      <p class="konnekt-call-name" id="callName">Joshua dayo</p>
+      <p class="konnekt-call-status" id="callStatus">00:00</p>
+    </div>
+    <div class="konnekt-call-top-right">
+      <button class="konnekt-top-icon" id="callGoChat"><i data-lucide="message-circle"></i></button>
+      <button class="konnekt-top-icon" id="callGoList"><i data-lucide="arrow-left-right"></i></button>
+    </div>
+  </div>
+
+  <div class="konnekt-call-middle">
+    <img class="konnekt-call-big-ava" id="callBigAva" src="konnect2.jfif" />
+    <div class="konnekt-glass-tile">
+      <button class="konnekt-glass-btn" id="callVideoBtn"><i data-lucide="video"></i></button>
+      <button class="konnekt-glass-btn" id="callMuteBtn"><i data-lucide="mic"></i></button>
+      <button class="konnekt-glass-btn" id="callSpeakerBtn"><i data-lucide="volume-2"></i></button>
+    </div>
+  </div>
+
+  <div class="konnekt-call-bottom">
+    <button class="konnekt-end-btn" id="callEndBtn"><i data-lucide="phone"></i></button>
+    <span class="konnekt-end-label">end</span>
+  </div>
+</div>
+
+<!-- PILL - OUTSIDE OVERLAY, GLOBAL -->
+<div class="konnekt-dynamic-pill hidden" id="dynamicPill">
+  <div class="konnekt-dot"></div>
+  <img class="konnekt-pill-ava" id="pillAva" src="" />
+  <span class="konnekt-pill-name" id="pillName">Joshua dayo</span>
+  <span class="konnekt-pill-time" id="pillTime">00:00</span>
+</div>
+
+<div class="konnekt-expanded-pill hidden" id="expandedPill">
+  <div class="konnekt-expanded-left" id="expandBackToCall">
+    <img class="konnekt-expanded-ava" id="expandedAva" src="knnockt.jfif" />
+    <div><b id="expandedName">Joshua dayo</b><span id="expandedTime">00:00 • tap</span></div>
+  </div>
+  <div class="konnekt-expanded-actions">
+    <button class="konnekt-exp-btn mute" id="pillMuteBtn"><i data-lucide="mic-off"></i></button>
+    <button class="konnekt-exp-btn speaker" id="pillSpeakerBtn"><i data-lucide="volume-2"></i></button>
+    <button class="konnekt-exp-btn end" id="pillEndBtn"><i data-lucide="phone"></i></button>
+  </div>
+</div>
+
+<audio id="ringtoneAudio" loop preload="auto">
+  <source src="https://cdn.pixabay.com/audio/2022/03/15/audio_5a4fb2a7d0.mp3" type="audio/mpeg">
+</audio>
+
 </main>
 
 
@@ -605,6 +700,7 @@
 <script src="header.js"></script>
 <script src="swipetoreply.js"></script>
 <script src="reaction.js"></script>
+<script src="call.js"></script>
 </html>
 
 

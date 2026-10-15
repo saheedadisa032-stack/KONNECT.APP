@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Calling UI - Final Responsive</title>
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,sans-serif}
+body{background:#0f0f0f;color:#fff;min-height:100vh;display:flex;justify-content:center;align-items:center;padding:20px}
+.app{width:100%;max-width:390px;height:844px;max-height:90vh;background:#000;border-radius:44px;position:relative;display:flex;flex-direction:column;align-items:center;padding:20px;border:1px solid #1f1f1f;overflow:hidden}
+
+/* TOP */
+.top{width:100%;display:flex;justify-content:space-between;margin-top:12px}
+.center{flex:1;text-align:center}
+.name{font-size:20px;font-weight:600}
+.status{font-size:13px;color:#8e8e93;margin-top:4px;font-variant-numeric:tabular-nums}
+.top-right{display:flex;gap:8px}
+.icon-top{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.12);border:0;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.icon-top i{width:16px;height:16px}
+
+/* MAIN */
+.main-content{width:100%;flex:1;display:flex;flex-direction:column;align-items:center}
+.profile-wrap{margin-top:70px}
+.profile-big{width:200px;height:200px;border-radius:50%;object-fit:cover}
+.glass-tile{margin-top:48px;width:100%;max-width:340px;height:72px;background:rgba(255,255,255,0.13);backdrop-filter:blur(32px);border-radius:36px;display:flex;justify-content:space-around;align-items:center}
+.action{width:52px;height:52px;border-radius:50%;background:transparent;border:0;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.action.active{background:rgba(255,255,255,0.22)}
+.action.mute-active{background:#ff3b30!important}
+.action i{width:22px;height:22px}
+.action.wiggle{animation:wiggle .42s cubic-bezier(.34,1.56,.64,1)}
+@keyframes wiggle{0%{transform:scale(1)}30%{transform:scale(1.18) rotate(-8deg)}60%{transform:scale(1.18) rotate(8deg)}100%{transform:scale(1)}}
+
+/* END BUTTON - TEXT UNDER ALWAYS */
+.end-wrap{margin-top:auto;margin-bottom:14px;display:flex;flex-direction:column;align-items:center}
+.end-btn{width:72px;height:72px;background:#ff3b30;border:0;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.end-btn i{width:26px;height:26px;color:#fff;transform:rotate(135deg)}
+.end-label{margin-top:8px;font-size:15px;font-weight:500;color:#ff3b30;background:rgba(255,59,48,0.13);padding:4px 12px;border-radius:20px}
+
+/* DESKTOP WHATSAPP STYLE */
+@media(min-width:768px){
+ .app{max-width:640px;height:480px;border-radius:20px;padding:24px}
+ .main-content{flex-direction:row;justify-content:space-around}
+ .profile-wrap{margin-top:0}
+ .profile-big{width:160px;height:160px}
+ .glass-tile{margin-top:0;width:220px;height:64px}
+ .end-wrap{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);margin:0;flex-direction:column}
+}
+@media(min-width:1100px){
+ .app{max-width:720px;height:520px}
+ .profile-big{width:180px;height:180px}
+}
+
+/* PILL */
+.dynamic-pill{position:absolute;top:12px;left:50%;transform:translateX(-50%);height:32px;padding:0 12px;background:#1e1e1e;border-radius:40px;display:flex;align-items:center;gap:7px;z-index:60;cursor:pointer;transition:.35s}
+.dynamic-pill.hidden{transform:translateX(-50%) translateY(-80px) scale(.8);opacity:0;pointer-events:none}
+.dot{width:7px;height:7px;background:#30d158;border-radius:50%}
+.pill-img{width:18px;height:18px;border-radius:50%}
+.pill-name{font-size:11px;font-weight:500}
+.pill-time{font-size:10px;color:#8e8e93}
+.expanded{position:absolute;top:52px;left:50%;transform:translateX(-50%);width:94%;max-width:500px;height:78px;background:rgba(45,45,47,0.98);border-radius:22px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;z-index:50;transition:.3s}
+.expanded.hidden{opacity:0;transform:translateX(-50%) scale(.94) translateY(-8px);pointer-events:none}
+.exp-left{display:flex;align-items:center;gap:10px;flex:1;cursor:pointer}
+.exp-img{width:32px;height:32px;border-radius:50%}
+.exp-info b{font-size:13px;display:block}
+.exp-info span{font-size:11px;color:#8e8e93}
+.exp-actions{display:flex;gap:6px}
+.exp-btn{width:34px;height:34px;border-radius:50%;border:0;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.exp-btn.mute{background:rgba(255,255,255,0.14);color:#fff}
+.exp-btn.mute.mute-active{background:#ff3b30}
+.exp-btn.speaker{background:rgba(255,255,255,0.14);color:#fff}
+.exp-btn.speaker.active{background:#fff;color:#000}
+.exp-btn.end{background:#ff3b30;color:#fff}
+.exp-btn i{width:15px;height:15px}
+.exp-btn.end i{transform:rotate(135deg)}
+
+/* INCOMING */
+.state2{position:absolute;inset:0;background:#000;display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px;border-radius:inherit}
+.state2.active{display:flex}
+.incoming-tile{width:100%;max-width:380px;height:66px;background:rgba(255,255,255,0.13);backdrop-filter:blur(32px);border-radius:28px;display:flex;align-items:center;padding:0 14px;gap:12px}
+.small-ava{width:42px;height:42px;border-radius:50%}
+.in-name{flex:1;font-size:14px;font-weight:500}
+.actions-right{display:flex;gap:10px}
+.mini{width:38px;height:38px;border-radius:50%;border:0;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.mini.accept{background:#30d158;animation:shake 1.2s infinite}
+.mini.decline{background:#ff3b30;animation:shake 1.2s infinite .2s}
+.mini i{width:18px;height:18px;color:#fff}
+.mini.decline i{transform:rotate(135deg)}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-2px) rotate(-6deg)}40%{transform:translateX(2px) rotate(6deg)}}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+<div id="pill" class="dynamic-pill hidden"><div class="dot"></div><img class="pill-img" src="https://i.pravatar.cc/100?img=12" /><span class="pill-name">Jordan Lee</span><span class="pill-time" id="pillTime">00:00</span></div>
+<div id="expanded" class="expanded hidden">
+<div class="exp-left" id="backToCall"><img class="exp-img" src="https://i.pravatar.cc/100?img=12" /><div class="exp-info"><b>Jordan Lee</b><span id="expTime">00:00 • tap to expand</span></div></div>
+<div class="exp-actions"><button class="exp-btn mute" id="pillMute"><i data-lucide="mic-off"></i></button><button class="exp-btn speaker" id="pillSpeaker"><i data-lucide="volume-2"></i></button><button class="exp-btn end" id="pillEnd"><i data-lucide="phone"></i></button></div>
+</div>
+
+<div id="state1" style="width:100%;height:100%;display:flex;flex-direction:column">
+<div class="top"><div style="width:76px"></div><div class="center"><div class="name">Jordan Lee</div><div class="status" id="status">00:00</div></div><div class="top-right"><button class="icon-top" id="btnChat"><i data-lucide="message-circle"></i></button><button class="icon-top" id="btnList"><i data-lucide="arrow-left-right"></i></button></div></div>
+<div class="main-content"><div class="profile-wrap"><img class="profile-big" src="https://i.pravatar.cc/300?img=12" /></div><div class="glass-tile"><button class="action" id="vBtn"><i data-lucide="video"></i></button><button class="action" id="mBtn"><i data-lucide="mic"></i></button><button class="action" id="sBtn"><i data-lucide="volume-2"></i></button></div></div>
+<div class="end-wrap"><button class="end-btn" id="endBtn"><i data-lucide="phone"></i></button><span class="end-label">end</span></div>
+</div>
+
+<div id="state2" class="state2"><div class="incoming-tile"><img class="small-ava" src="https://i.pravatar.cc/100?img=12" /><span class="in-name">Jordan Lee</span><div class="actions-right"><button class="mini accept"><i data-lucide="phone"></i></button><button class="mini decline"><i data-lucide="phone"></i></button></div></div></div>
+</div>
+
+<script>
+lucide.createIcons();
+let sec=0, mainTimer=null, pillTimer=null;
+const statusEl=document.getElementById('status');
+const pill=document.getElementById('pill');
+const expanded=document.getElementById('expanded');
+const state1=document.getElementById('state1');
+const state2=document.getElementById('state2');
+
+function formatTime(s){const m=String(Math.floor(s/60)).padStart(2,'0');const ss=String(s%60).padStart(2,'0');return `${m}:${ss}`}
+
+// MAIN COUNTDOWN TIMER FOR CALLING STATE
+function startMainTimer(){
+ clearInterval(mainTimer);
+ sec=0;
+ statusEl.textContent='calling...';
+ setTimeout(()=>{
+  mainTimer=setInterval(()=>{
+   sec++;
+   statusEl.textContent=formatTime(sec);
+   document.getElementById('pillTime').textContent=formatTime(sec);
+   document.getElementById('expTime').textContent=formatTime(sec)+' • tap to expand';
+  },1000);
+ },2000); // after 2s show connected countdown
+}
+startMainTimer();
+
+function wiggleAct(btn,isMute){btn.classList.remove('wiggle');void btn.offsetWidth;btn.classList.add('wiggle');if(isMute){btn.classList.toggle('mute-active')}else{btn.classList.toggle('active')}setTimeout(()=>btn.classList.remove('wiggle'),420)}
+document.getElementById('vBtn').onclick=function(){wiggleAct(this)};
+document.getElementById('mBtn').onclick=function(){wiggleAct(this,true)};
+document.getElementById('sBtn').onclick=function(){wiggleAct(this)};
+
+function showPill(){state1.style.display='none';state2.classList.remove('active');pill.classList.remove('hidden');expanded.classList.remove('hidden');}
+document.getElementById('btnChat').onclick=showPill;
+document.getElementById('btnList').onclick=showPill;
+document.getElementById('endBtn').onclick=()=>{clearInterval(mainTimer);statusEl.textContent='ended';showPill();setTimeout(()=>{pill.classList.add('hidden');expanded.classList.add('hidden');state2.classList.add('active')},800)};
+pill.onclick=()=>expanded.classList.remove('hidden');
+document.getElementById('backToCall').onclick=()=>{pill.classList.add('hidden');expanded.classList.add('hidden');state1.style.display='flex';};
+document.getElementById('pillMute').onclick=(e)=>{e.stopPropagation();e.currentTarget.classList.toggle('mute-active');document.getElementById('mBtn').classList.toggle('mute-active');};
+document.getElementById('pillSpeaker').onclick=(e)=>{e.stopPropagation();e.currentTarget.classList.toggle('active');document.getElementById('sBtn').classList.toggle('active');};
+document.getElementById('pillEnd').onclick=(e)=>{e.stopPropagation();clearInterval(mainTimer);pill.classList.add('hidden');expanded.classList.add('hidden');state2.classList.add('active');};
+document.querySelectorAll('.mini').forEach(b=>b.onclick=()=>{state2.classList.remove('active');state1.style.display='flex';pill.classList.add('hidden');expanded.classList.add('hidden');startMainTimer();});
+document.getElementById('app').addEventListener('click',(e)=>{if(!expanded.classList.contains('hidden')&&!expanded.contains(e.target)&&!pill.contains(e.target)){expanded.classList.add('hidden')}});
+</script>
+</body>
+</html>

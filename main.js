@@ -572,3 +572,5 @@ window.positionPillSmart = function(msgRow){
 
 if(window.lucide) lucide.createIcons();
 initChatScrollLogic();
+
+/* ===== KONNEKT CALL JS - FINAL WORKING ===== */
