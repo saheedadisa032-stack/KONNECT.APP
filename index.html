@@ -31,6 +31,7 @@
 <link rel="stylesheet" href="desktop-media.css">
 <link rel="stylesheet" href="extra.css">
 <link rel="stylesheet" href="call.css">
+<link rel="stylesheet" href="video.css">
     <title>KONNEKT</title>
 </head>
 <body>
@@ -397,7 +398,13 @@
 <button class="phone-call-btn" id="startOutgoingCallBtn" style="background:none;border:none;cursor:pointer;">
   <i data-lucide="phone" class="phone-call"></i>
 </button>
-      <i data-lucide="video" class="video-call"></i>
+     
+<button id="yourVideoBtn" data-waitlist-video>
+  <i data-lucide="video"></i>
+</button>
+
+
+
       <!-- SELECT MODE PILL - X icon + count together in one pill, responsive -->
       <!-- Delete icon removed as requested -->
       <div class="selected-pill" id="selectedPill">
@@ -638,7 +645,7 @@
         <p class="konnekt-call-status" id="callStatus">00:00</p>
       </div>
       <div class="konnekt-call-top-right">
-        <button class="konnekt-top-icon" id="callGoChat"><i data-lucide="message-circle"></i></button>
+
         <button class="konnekt-top-icon" id="callGoList"><i data-lucide="arrow-left-right"></i></button>
       </div>
     </div>
@@ -674,6 +681,94 @@
       <button class="konnekt-exp-btn end" id="pillEndBtn"><i data-lucide="phone"></i></button>
     </div>
   </div>
+<button onclick="KonnektWaitlist.clearCache(); KonnektWaitlist.open()" style="position:fixed; bottom:20px; left:20px; z-index:999999; padding:8px 12px; border-radius:999px; background:red; color:#fff; font-size:12px; border:none;">RESET WAITLIST</button>
+
+
+
+<!-- ===== KONNEKT VIDEO CALL WAITLIST - BOTTOM SHEET WITH LUCIDE ===== -->
+<div id="videoWaitlistOverlay" class="konnekt-waitlist-overlay">
+  <div id="videoWaitlistSheet" class="konnekt-waitlist-sheet">
+     <div class="konnekt-waitlist-scroll-track">
+    <div class="konnekt-waitlist-scroll-thumb" id="kwScrollThumb"></div>
+  </div>
+    <!-- DRAG HANDLE -->
+    <div class="konnekt-waitlist-handle"></div>
+    
+    <!-- CLOSE X ICON - LUCIDE -->
+    <button id="waitlistCloseBtn" class="konnekt-waitlist-close" aria-label="Close">
+      <i data-lucide="x" class="konnekt-waitlist-close-icon"></i>
+    </button>
+
+    <!-- TOP ICON WITH GLOW - LUCIDE VIDEO -->
+    <div class="konnekt-waitlist-icon-wrap">
+      <div class="konnekt-waitlist-icon-glow"></div>
+      <div class="konnekt-waitlist-icon">
+        <i data-lucide="video" class="konnekt-waitlist-video-icon"></i>
+      </div>
+    </div>
+
+    <!-- COMING SOON BADGE -->
+    <div class="konnekt-waitlist-badge">
+      <span class="konnekt-waitlist-dot"></span>
+      COMING SOON
+    </div>
+
+    <!-- TITLE -->
+    <h2 class="konnekt-waitlist-title">Video Calls Are Coming</h2>
+
+    <!-- PARAGRAPH -->
+    <p class="konnekt-waitlist-desc">
+      We're building crystal-clear, lag-free video calls designed for real connections. 
+      Join the waitlist to be among the first to experience it when it launches.
+    </p>
+
+    <!-- REASON INPUT -->
+    <div class="konnekt-waitlist-input-wrap">
+      <label for="waitlistReason" class="konnekt-waitlist-label">Why do you need video calls? (Optional)</label>
+      <textarea 
+        id="waitlistReason" 
+        class="konnekt-waitlist-textarea" 
+        placeholder="e.g., For my long-distance relationship, business meetings, family check-ins..."
+        rows="3"
+        maxlength="200"
+      ></textarea>
+      <span class="konnekt-waitlist-count"><span id="waitlistCharCount">0</span>/200</span>
+    </div>
+
+<button id="waitlistJoinBtn" class="konnekt-waitlist-btn">
+  <span class="konnekt-waitlist-btn-text">Join Waitlist</span>
+  
+  <!-- 5 TINY GREY LEAF - CLOSE CIRCLE -->
+  <span class="konnekt-waitlist-loader hidden">
+    <span class="konnekt-leaf-circle">
+      <span class="konnekt-leaf-dot"><i data-lucide="leaf" class="konnekt-leaf-icon"></i></span>
+      <span class="konnekt-leaf-dot"><i data-lucide="leaf" class="konnekt-leaf-icon"></i></span>
+      <span class="konnekt-leaf-dot"><i data-lucide="leaf" class="konnekt-leaf-icon"></i></span>
+      <span class="konnekt-leaf-dot"><i data-lucide="leaf" class="konnekt-leaf-icon"></i></span>
+      <span class="konnekt-leaf-dot"><i data-lucide="leaf" class="konnekt-leaf-icon"></i></span>
+    </span>
+  </span>
+  
+  <span class="konnekt-waitlist-check hidden">
+    <i data-lucide="thumbs-up" class="konnekt-check-icon"></i>
+  </span>
+</button>
+
+    <!-- SUCCESS STATE -->
+    <div id="waitlistSuccess" class="konnekt-waitlist-success hidden">
+      <div class="konnekt-waitlist-success-icon">
+        <i data-lucide="bell-ring" class="konnekt-bell-icon"></i>
+      </div>
+      <h3>You're on the list!</h3>
+      <p>We'll notify you on this device as soon as video calls are available. Your feedback will help shape how we build it.</p>
+    </div>
+
+    <!-- FOOTER HINT -->
+    <p class="konnekt-waitlist-footer">No spam. We'll only notify you once when it's ready.</p>
+
+  </div>
+</div>
+
 
   <audio id="ringtoneAudio" loop preload="auto">
     <source src="https://cdn.pixabay.com/audio/2022/03/15/audio_5a4fb2a7d0.mp3" type="audio/mpeg">
@@ -699,12 +794,14 @@
 <script src="https://unpkg.com/lucide@latest">
     
 </script>
+<script src="general.js"></script>
 <script src="main.js"></script>
 <script src="sidebar.js"></script>
 <script src="header.js"></script>
 <script src="swipetoreply.js"></script>
 <script src="reaction.js"></script>
 <script src="call.js"></script>
+<script src="video.js"></script>
 </html>
 
 
